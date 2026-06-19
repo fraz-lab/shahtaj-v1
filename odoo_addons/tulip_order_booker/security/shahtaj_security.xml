@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+
+
+
+    <record id="group_shahtaj_distributor" model="res.groups">
+
+        <field name="name">Shahtaj / Distributor</field>
+
+        <field name="category_id" ref="base.module_category_sales"/>
+
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+
+    </record>
+
+
+
+    <record id="group_shahtaj_order_booker" model="res.groups">
+
+        <field name="name">Shahtaj / Order Booker</field>
+
+        <field name="category_id" ref="base.module_category_sales"/>
+
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+
+    </record>
+
+
+
+</odoo>
+

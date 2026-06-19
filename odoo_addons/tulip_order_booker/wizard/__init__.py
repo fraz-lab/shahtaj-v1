@@ -1,0 +1,5 @@
+# -*- coding: utf-8 -*-
+
+from . import shahtaj_generate_tasks
+from . import shahtaj_create_order_booker
+from . import shahtaj_visit_checkin

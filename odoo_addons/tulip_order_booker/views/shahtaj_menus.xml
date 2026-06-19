@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <menuitem id="menu_shahtaj_root"
+              name="Shahtaj"
+              sequence="5"
+              groups="tulip_order_booker.group_shahtaj_distributor,tulip_order_booker.group_shahtaj_order_booker"/>
+
+    <!-- Distributor -->
+    <menuitem id="menu_shahtaj_order_bookers"
+              name="Order Bookers"
+              parent="menu_shahtaj_root"
+              action="action_shahtaj_order_booker_management"
+              sequence="5"
+              groups="tulip_order_booker.group_shahtaj_distributor"/>
+
+    <menuitem id="menu_shahtaj_create_order_booker"
+              name="Create Order Booker"
+              parent="menu_shahtaj_root"
+              action="action_shahtaj_create_order_booker_wizard"
+              sequence="6"
+              groups="tulip_order_booker.group_shahtaj_distributor"/>
+
+    <menuitem id="menu_shahtaj_zone"
+              name="1. Zones"
+              parent="menu_shahtaj_root"
+              action="action_shahtaj_zone"
+              sequence="10"
+              groups="tulip_order_booker.group_shahtaj_distributor"/>
+
+    <menuitem id="menu_shahtaj_route"
+              name="2. Routes"
+              parent="menu_shahtaj_root"
+              action="action_shahtaj_route"
+              sequence="20"
+              groups="tulip_order_booker.group_shahtaj_distributor"/>
+
+    <menuitem id="menu_shahtaj_shops"
+              name="3. Shops"
+              parent="menu_shahtaj_root"
+              action="action_shahtaj_shop"
+              sequence="30"
+              groups="tulip_order_booker.group_shahtaj_distributor"/>
+
+    <menuitem id="menu_shahtaj_weekly_schedule"
+              name="4. Weekly Schedules"
+              parent="menu_shahtaj_root"
+              action="action_shahtaj_schedule_hub"
+              sequence="35"
+              groups="tulip_order_booker.group_shahtaj_distributor"/>
+
+    <menuitem id="menu_shahtaj_visit_task"
+              name="5. Visit Tasks"
+              parent="menu_shahtaj_root"
+              action="action_shahtaj_visit_hub"
+              sequence="37"
+              groups="tulip_order_booker.group_shahtaj_distributor"/>
+
+    <menuitem id="menu_shahtaj_visit"
+              name="Shop Visits"
+              parent="menu_shahtaj_root"
+              action="action_shahtaj_visit"
+              sequence="39"
+              groups="tulip_order_booker.group_shahtaj_distributor"/>
+
+    <menuitem id="menu_shahtaj_my_visits"
+              name="My Shop Visits"
+              parent="menu_shahtaj_root"
+              action="action_shahtaj_my_visits"
+              sequence="29"
+              groups="tulip_order_booker.group_shahtaj_order_booker"/>
+
+    <menuitem id="menu_shahtaj_visit_target"
+              name="6. Targets"
+              parent="menu_shahtaj_root"
+              action="action_shahtaj_visit_target"
+              sequence="38"
+              groups="tulip_order_booker.group_shahtaj_distributor"/>
+
+    <menuitem id="menu_shahtaj_shop_approvals"
+              name="Pending Approvals"
+              parent="menu_shahtaj_root"
+              action="action_shahtaj_shop_pending"
+              sequence="40"
+              groups="tulip_order_booker.group_shahtaj_distributor"/>
+
+    <!-- Order booker only (not distributor) -->
+    <menuitem id="menu_shahtaj_shop_register"
+              name="Register Shop"
+              parent="menu_shahtaj_root"
+              action="action_shahtaj_shop_register"
+              sequence="25"
+              groups="tulip_order_booker.group_shahtaj_order_booker"/>
+
+    <menuitem id="menu_shahtaj_my_weekly_schedule"
+              name="My Weekly Schedule"
+              parent="menu_shahtaj_root"
+              action="action_shahtaj_my_weekly_schedule"
+              sequence="26"
+              groups="tulip_order_booker.group_shahtaj_order_booker"/>
+
+    <menuitem id="menu_shahtaj_visit_task_today"
+              name="My Tasks Today"
+              parent="menu_shahtaj_root"
+              action="action_shahtaj_visit_task_today"
+              sequence="27"
+              groups="tulip_order_booker.group_shahtaj_order_booker"/>
+
+    <menuitem id="menu_shahtaj_visit_target_my"
+              name="My Targets"
+              parent="menu_shahtaj_root"
+              action="action_shahtaj_visit_target_my"
+              sequence="28"
+              groups="tulip_order_booker.group_shahtaj_order_booker"/>
+
+</odoo>
