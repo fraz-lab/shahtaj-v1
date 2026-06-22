@@ -64,6 +64,6 @@ class ShahtajVisitCheckinWizard(models.TransientModel):
             'view_mode': 'form',
             'target': 'current',
             'views': [
-                (self.env.ref('tulip_order_booker.view_shahtaj_visit_form_booker').id, 'form'),
+                (self.env.ref('shahtaj_order_booker.view_shahtaj_visit_form_booker').id, 'form'),
             ],
         }

@@ -60,7 +60,7 @@ class ShahtajGenerateTasksWizard(models.TransientModel):
             },
             'target': 'current',
             'views': [
-                (self.env.ref('tulip_order_booker.view_shahtaj_visit_task_list').id, 'list'),
-                (self.env.ref('tulip_order_booker.view_shahtaj_visit_task_form').id, 'form'),
+                (self.env.ref('shahtaj_order_booker.view_shahtaj_visit_task_list').id, 'list'),
+                (self.env.ref('shahtaj_order_booker.view_shahtaj_visit_task_form').id, 'form'),
             ],
         }

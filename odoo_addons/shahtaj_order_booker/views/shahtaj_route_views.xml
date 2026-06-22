@@ -52,7 +52,7 @@
                                        'default_is_shahtaj_shop': True,
                                        'default_shop_approval_state': 'approved',
                                        'default_company_type': 'company',
-                                       'form_view_ref': 'tulip_order_booker.view_shahtaj_shop_form'
+                                       'form_view_ref': 'shahtaj_order_booker.view_shahtaj_shop_form'
                                    }">
                                 <list editable="bottom">
                                     <field name="name"/>

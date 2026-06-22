@@ -2,21 +2,21 @@
 # from odoo import http
 
 
-# class TulipOrderBooker(http.Controller):
-#     @http.route('/tulip_order_booker/tulip_order_booker', auth='public')
+# class ShahtajOrderBooker(http.Controller):
+#     @http.route('/shahtaj_order_booker/shahtaj_order_booker', auth='public')
 #     def index(self, **kw):
 #         return "Hello, world"
 
-#     @http.route('/tulip_order_booker/tulip_order_booker/objects', auth='public')
+#     @http.route('/shahtaj_order_booker/shahtaj_order_booker/objects', auth='public')
 #     def list(self, **kw):
-#         return http.request.render('tulip_order_booker.listing', {
-#             'root': '/tulip_order_booker/tulip_order_booker',
-#             'objects': http.request.env['tulip_order_booker.tulip_order_booker'].search([]),
+#         return http.request.render('shahtaj_order_booker.listing', {
+#             'root': '/shahtaj_order_booker/shahtaj_order_booker',
+#             'objects': http.request.env['shahtaj_order_booker.shahtaj_order_booker'].search([]),
 #         })
 
-#     @http.route('/tulip_order_booker/tulip_order_booker/objects/<model("tulip_order_booker.tulip_order_booker"):obj>', auth='public')
+#     @http.route('/shahtaj_order_booker/shahtaj_order_booker/objects/<model("shahtaj_order_booker.shahtaj_order_booker"):obj>', auth='public')
 #     def object(self, obj, **kw):
-#         return http.request.render('tulip_order_booker.object', {
+#         return http.request.render('shahtaj_order_booker.object', {
 #             'object': obj
 #         })
 

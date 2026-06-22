@@ -1,26 +1,19 @@
 ODOO_ORDER_BOOKER_HANDOFF.md
-odoo_addons/tulip_order_booker/__pycache__/__init__.cpython-310.pyc
-odoo_addons/tulip_order_booker/controllers/__pycache__/__init__.cpython-310.pyc
-odoo_addons/tulip_order_booker/controllers/__pycache__/controllers.cpython-310.pyc
-odoo_addons/tulip_order_booker/migrations/18.0.1.0.17/__pycache__/post-migrate.cpython-310.pyc
-odoo_addons/tulip_order_booker/migrations/18.0.1.0.9/__pycache__/post-migrate.cpython-310.pyc
-odoo_addons/tulip_order_booker/models/__pycache__/__init__.cpython-310.pyc
-odoo_addons/tulip_order_booker/models/__pycache__/ir_http.cpython-310.pyc
-odoo_addons/tulip_order_booker/models/__pycache__/models.cpython-310.pyc
-odoo_addons/tulip_order_booker/models/__pycache__/res_partner.cpython-310.pyc
-odoo_addons/tulip_order_booker/models/__pycache__/res_users.cpython-310.pyc
-odoo_addons/tulip_order_booker/models/__pycache__/sale_order.cpython-310.pyc
-odoo_addons/tulip_order_booker/models/__pycache__/shahtaj_gps.cpython-310.pyc
-odoo_addons/tulip_order_booker/models/__pycache__/shahtaj_route.cpython-310.pyc
-odoo_addons/tulip_order_booker/models/__pycache__/shahtaj_visit_target.cpython-310.pyc
-odoo_addons/tulip_order_booker/models/__pycache__/shahtaj_visit_task.cpython-310.pyc
-odoo_addons/tulip_order_booker/models/__pycache__/shahtaj_visit.cpython-310.pyc
-odoo_addons/tulip_order_booker/models/__pycache__/shahtaj_visit_task.cpython-310.pyc
-odoo_addons/tulip_order_booker/models/__pycache__/shahtaj_weekly_schedule.cpython-310.pyc
-odoo_addons/tulip_order_booker/models/__pycache__/shahtaj_zone.cpython-310.pyc
-odoo_addons/tulip_order_booker/wizard/__pycache__/__init__.cpython-310.pyc
-odoo_addons/tulip_order_booker/wizard/__pycache__/shahtaj_create_order_booker.cpython-310.pyc
-odoo_addons/tulip_order_booker/wizard/__pycache__/shahtaj_generate_tasks.cpython-310.pyc
-odoo_addons/tulip_order_booker/wizard/__pycache__/shahtaj_visit_checkin.cpython-310.pyc
-odoo
+
+# Odoo core (cloned separately)
+odoo/
+
+# Local secrets
 odoo.conf
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

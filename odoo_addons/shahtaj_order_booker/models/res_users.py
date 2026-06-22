@@ -87,7 +87,7 @@ class ResUsers(models.Model):
     @api.depends('groups_id')
     def _compute_shahtaj_is_order_booker(self):
         booker_group = self.env.ref(
-            'tulip_order_booker.group_shahtaj_order_booker',
+            'shahtaj_order_booker.group_shahtaj_order_booker',
             raise_if_not_found=False,
         )
         booker_gid = booker_group.id if booker_group else False
@@ -245,13 +245,13 @@ class ResUsers(models.Model):
             'views': [
                 (
                     self.env.ref(
-                        'tulip_order_booker.view_shahtaj_weekly_schedule_list_planner'
+                        'shahtaj_order_booker.view_shahtaj_weekly_schedule_list_planner'
                     ).id,
                     'list',
                 ),
                 (
                     self.env.ref(
-                        'tulip_order_booker.view_shahtaj_weekly_schedule_form_planner'
+                        'shahtaj_order_booker.view_shahtaj_weekly_schedule_form_planner'
                     ).id,
                     'form',
                 ),
@@ -281,7 +281,7 @@ class ResUsers(models.Model):
             'view_mode': 'form',
             'res_id': self.id,
             'views': [
-                (self.env.ref('tulip_order_booker.view_shahtaj_visit_hub_form').id, 'form'),
+                (self.env.ref('shahtaj_order_booker.view_shahtaj_visit_hub_form').id, 'form'),
             ],
             'target': 'current',
         }

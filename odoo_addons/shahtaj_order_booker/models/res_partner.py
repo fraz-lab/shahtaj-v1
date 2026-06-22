@@ -10,8 +10,8 @@ MAX_REGISTRATION_DISTANCE_M = 100.0
 # Allow Shahtaj roles to use accounting credit fields on shops without Invoicing app rights.
 _SHAHTAJ_CREDIT_GROUPS = (
     'account.group_account_invoice,account.group_account_readonly,'
-    'tulip_order_booker.group_shahtaj_distributor,'
-    'tulip_order_booker.group_shahtaj_order_booker'
+    'shahtaj_order_booker.group_shahtaj_distributor,'
+    'shahtaj_order_booker.group_shahtaj_order_booker'
 )
 
 
@@ -141,9 +141,9 @@ class ResPartner(models.Model):
         user = self.env.user
         if user.has_group('base.group_system'):
             return False
-        if user.has_group('tulip_order_booker.group_shahtaj_distributor'):
+        if user.has_group('shahtaj_order_booker.group_shahtaj_distributor'):
             return False
-        return user.has_group('tulip_order_booker.group_shahtaj_order_booker')
+        return user.has_group('shahtaj_order_booker.group_shahtaj_order_booker')
 
     @api.depends('legacy_balance_move_id')
     def _compute_outstanding_balance(self):

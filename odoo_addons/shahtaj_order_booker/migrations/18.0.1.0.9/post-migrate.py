@@ -9,7 +9,7 @@ def migrate(cr, version):
          WHERE id IN (
                SELECT res_id
                  FROM ir_model_data
-                WHERE module = 'tulip_order_booker'
+                WHERE module = 'shahtaj_order_booker'
                   AND name = 'rule_shahtaj_distributor_read_bookers'
            )
         """,

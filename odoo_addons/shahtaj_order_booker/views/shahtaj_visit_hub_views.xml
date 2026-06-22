@@ -75,7 +75,7 @@
                     <notebook>
                         <page string="Today" name="today">
                             <field name="shahtaj_task_today_ids" readonly="1" nolabel="1"
-                                   context="{'list_view_ref': 'tulip_order_booker.view_shahtaj_visit_task_embedded_list'}">
+                                   context="{'list_view_ref': 'shahtaj_order_booker.view_shahtaj_visit_task_embedded_list'}">
                                 <list decoration-muted="state in ('cancelled', 'skipped')"
                                       decoration-success="state == 'completed'"
                                       decoration-warning="state == 'pending'"

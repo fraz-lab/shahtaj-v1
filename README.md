@@ -7,7 +7,7 @@ Custom **Odoo 18** application for field sales and order booking. Distributors m
 | Item | Value |
 |------|-------|
 | **Display name** | Shahtaj Order Booker |
-| **Technical module name** | `tulip_order_booker` |
+| **Technical module name** | `shahtaj_order_booker` |
 | **Odoo version** | 18.0 |
 | **Python version** | 3.10 or 3.11 (recommended; Odoo 18 also supports 3.12) |
 | **License** | LGPL-3 |
@@ -32,7 +32,7 @@ This repository contains the **custom addon only**. [Odoo Community](https://git
 ├── odoo.conf              # Local config (create yourself; not committed)
 ├── odoo/                  # Odoo 18 source (clone separately)
 └── odoo_addons/
-    └── tulip_order_booker/   # This module
+    └── shahtaj_order_booker/   # This module
 ```
 
 ---
@@ -135,14 +135,14 @@ addons_path = odoo/addons,odoo_addons
 From the project root, with the virtual environment activated:
 
 ```bash
-python odoo/odoo-bin -c odoo.conf -d shahtaj_dev -i tulip_order_booker
+python odoo/odoo-bin -c odoo.conf -d shahtaj_dev -i shahtaj_order_booker
 ```
 
 | Flag | Meaning |
 |------|---------|
 | `-c odoo.conf` | Use your config file |
 | `-d shahtaj_dev` | Database name (created on first run if it does not exist) |
-| `-i tulip_order_booker` | Install this module on first startup |
+| `-i shahtaj_order_booker` | Install this module on first startup |
 
 Open a browser at **http://localhost:8069**, complete the database setup wizard if prompted, then log in.
 
@@ -161,7 +161,7 @@ Useful development flags:
 python odoo/odoo-bin -c odoo.conf -d shahtaj_dev --dev=reload
 
 # Upgrade module after code changes
-python odoo/odoo-bin -c odoo.conf -d shahtaj_dev -u tulip_order_booker
+python odoo/odoo-bin -c odoo.conf -d shahtaj_dev -u shahtaj_order_booker
 ```
 
 ---
@@ -202,7 +202,7 @@ The following standard Odoo modules are required and are installed automatically
 
 ## Troubleshooting
 
-### `Module not found: tulip_order_booker`
+### `Module not found: shahtaj_order_booker`
 
 - Confirm `addons_path` in `odoo.conf` includes `odoo_addons`
 - Run Odoo from the **project root** so relative paths resolve correctly
@@ -230,13 +230,23 @@ The following standard Odoo modules are required and are installed automatically
   python3.11 -m venv .venv
   ```
 
+### Upgrading from `tulip_order_booker` (older installs)
+
+The module was renamed to `shahtaj_order_booker`. On an existing database, upgrade after pulling the latest code:
+
+```bash
+python odoo/odoo-bin -c odoo.conf -d your_database -u shahtaj_order_booker
+```
+
+Version `18.0.1.0.19` includes a migration that renames the module in the database automatically.
+
 ---
 
 ## Development notes
 
-- Custom code lives under `odoo_addons/tulip_order_booker/`
-- After changing Python or XML files, upgrade the module: `-u tulip_order_booker`
-- Database migrations are in `odoo_addons/tulip_order_booker/migrations/`
+- Custom code lives under `odoo_addons/shahtaj_order_booker/`
+- After changing Python or XML files, upgrade the module: `-u shahtaj_order_booker`
+- Database migrations are in `odoo_addons/shahtaj_order_booker/migrations/`
 
 ---
 

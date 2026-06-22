@@ -134,8 +134,8 @@ class ShahtajVisit(models.Model):
     def _is_booker_only_user(self):
         user = self.env.user
         return (
-            user.has_group('tulip_order_booker.group_shahtaj_order_booker')
-            and not user.has_group('tulip_order_booker.group_shahtaj_distributor')
+            user.has_group('shahtaj_order_booker.group_shahtaj_order_booker')
+            and not user.has_group('shahtaj_order_booker.group_shahtaj_distributor')
             and not user.has_group('base.group_system')
         )
 

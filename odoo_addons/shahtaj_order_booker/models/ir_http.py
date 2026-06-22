@@ -9,7 +9,7 @@ class IrHttp(models.AbstractModel):
     def session_info(self):
         if request.session.uid:
             user = request.env.user
-            if user.has_group('tulip_order_booker.group_shahtaj_order_booker'):
+            if user.has_group('shahtaj_order_booker.group_shahtaj_order_booker'):
                 user.sudo().write({
                     'shahtaj_last_seen_at': fields.Datetime.now(),
                 })

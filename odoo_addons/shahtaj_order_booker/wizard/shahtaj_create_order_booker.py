@@ -26,7 +26,7 @@ class ShahtajCreateOrderBookerWizard(models.TransientModel):
 
     def action_create_booker(self):
         self.ensure_one()
-        booker_group = self.env.ref('tulip_order_booker.group_shahtaj_order_booker')
+        booker_group = self.env.ref('shahtaj_order_booker.group_shahtaj_order_booker')
         existing = self.env['res.users'].sudo().search([
             ('login', '=ilike', self.login),
         ], limit=1)
@@ -48,6 +48,6 @@ class ShahtajCreateOrderBookerWizard(models.TransientModel):
             'view_mode': 'form',
             'target': 'current',
             'views': [
-                (self.env.ref('tulip_order_booker.view_shahtaj_order_booker_form').id, 'form'),
+                (self.env.ref('shahtaj_order_booker.view_shahtaj_order_booker_form').id, 'form'),
             ],
         }
