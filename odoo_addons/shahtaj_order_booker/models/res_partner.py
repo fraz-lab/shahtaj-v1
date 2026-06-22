@@ -44,28 +44,12 @@ class ResPartner(models.Model):
         string='Route',
         ondelete='set null',
         domain="[('id', 'in', allowed_route_ids)]",
-    )
-    route_ids = fields.Many2many(
-        'shahtaj.route',
-        'shahtaj_route_partner_rel',
-        'partner_id',
-        'route_id',
-        string='Routes',
+        index=True,
     )
     registered_by_id = fields.Many2one(
         'res.users',
         string='Registered By',
         readonly=True,
-        copy=False,
-    )
-    registration_user_latitude = fields.Float(
-        string='Registration Booker Latitude',
-        digits=(10, 7),
-        copy=False,
-    )
-    registration_user_longitude = fields.Float(
-        string='Registration Booker Longitude',
-        digits=(10, 7),
         copy=False,
     )
     legacy_balance = fields.Monetary(
@@ -145,13 +129,15 @@ class ResPartner(models.Model):
         if self.owner_phone:
             self.phone = self.owner_phone
 
-    @api.constrains(
-        'is_shahtaj_shop', 'registration_user_latitude', 'registration_user_longitude',
-        'partner_latitude', 'partner_longitude', 'registered_by_id', 'shop_approval_state',
-    )
-    def _check_registration_gps_required(self):
-        for partner in self.filtered(lambda p: p._needs_registration_gps_check()):
-            partner._validate_registration_gps()
+    @api.constrains('route_id', 'zone_id', 'is_shahtaj_shop')
+    def _check_shop_route_zone(self):
+        for partner in self.filtered(lambda p: p.is_shahtaj_shop and p.route_id):
+            if partner.zone_id and partner.route_id.zone_id != partner.zone_id:
+                raise ValidationError(_(
+                    'Route "%(route)s" does not belong to zone "%(zone)s".',
+                    route=partner.route_id.name,
+                    zone=partner.zone_id.name,
+                ))
 
     @api.constrains('partner_latitude', 'partner_longitude')
     def _check_shop_gps_range(self):
@@ -172,14 +158,6 @@ class ResPartner(models.Model):
             + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
         )
         return 2 * radius * math.asin(math.sqrt(a))
-
-    def _needs_registration_gps_check(self):
-        """Booker-at-shop GPS check disabled at registration (visit-time GPS in Phase 2)."""
-        return False
-
-    def _validate_registration_gps(self):
-        """Legacy hook — registration no longer requires booker GPS."""
-        return
 
     def _validate_shop_required_fields(self):
         for partner in self.filtered('is_shahtaj_shop'):
@@ -212,12 +190,6 @@ class ResPartner(models.Model):
             if credit > 0:
                 vals['use_partner_credit_limit'] = True
         return vals
-
-    def _sync_route_assignment(self):
-        Route = self.env['shahtaj.route'].sudo()
-        for partner in self:
-            if partner.route_id and partner.id not in partner.route_id.shop_ids.ids:
-                Route.browse(partner.route_id.id).write({'shop_ids': [(4, partner.id)]})
 
     def _post_legacy_balance_entry(self):
         """Post opening receivable for legacy balance to Odoo accounting."""
@@ -284,7 +256,6 @@ class ResPartner(models.Model):
         partners = super().create(prepared)
         shop_partners = partners.filtered('is_shahtaj_shop')
         shop_partners._validate_shop_required_fields()
-        shop_partners._sync_route_assignment()
         shop_partners.filtered(
             lambda p: p.shop_approval_state == 'approved'
         )._post_legacy_balance_entry()
@@ -303,8 +274,6 @@ class ResPartner(models.Model):
         if any(k in vals for k in ('is_shahtaj_shop', 'name', 'owner_name', 'owner_phone',
                                     'partner_latitude', 'partner_longitude')):
             self.filtered('is_shahtaj_shop')._validate_shop_required_fields()
-        if 'route_id' in vals:
-            self._sync_route_assignment()
         if 'legacy_balance' in vals:
             self.filtered(
                 lambda p: p.shop_approval_state == 'approved' and not p.legacy_balance_move_id

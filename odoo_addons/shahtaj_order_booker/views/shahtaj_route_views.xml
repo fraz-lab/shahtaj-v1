@@ -52,12 +52,16 @@
                                        'default_is_shahtaj_shop': True,
                                        'default_shop_approval_state': 'approved',
                                        'default_company_type': 'company',
+                                       'default_route_id': id,
+                                       'default_zone_id': zone_id,
                                        'form_view_ref': 'shahtaj_order_booker.view_shahtaj_shop_form'
                                    }">
                                 <list editable="bottom">
                                     <field name="name"/>
                                     <field name="owner_name"/>
                                     <field name="owner_phone"/>
+                                    <field name="route_id" column_invisible="1"/>
+                                    <field name="zone_id" column_invisible="1"/>
                                     <field name="shop_approval_state" widget="badge"
                                            decoration-success="shop_approval_state == 'approved'"
                                            decoration-warning="shop_approval_state == 'pending'"/>

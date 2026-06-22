@@ -103,10 +103,10 @@ class ShahtajVisitTask(models.Model):
     def _check_shop_on_route(self):
         for task in self:
             if task.shop_id and task.route_id:
-                if task.shop_id not in task.route_id.shop_ids:
+                if task.shop_id.route_id != task.route_id:
                     raise ValidationError(_(
                         'Shop "%(shop)s" is not on route "%(route)s". '
-                        'Add the shop to the route first.',
+                        'Assign the shop to this route first.',
                         shop=task.shop_id.name,
                         route=task.route_id.name,
                     ))

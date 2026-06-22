@@ -295,6 +295,18 @@ class ShahtajVisit(models.Model):
             'sale_order_id': order.id,
         })
         self._finish_visit('order')
+        if self._is_booker_only_user():
+            return {
+                'type': 'ir.actions.act_window',
+                'name': _('Shop Visit'),
+                'res_model': 'shahtaj.visit',
+                'res_id': self.id,
+                'view_mode': 'form',
+                'target': 'current',
+                'views': [
+                    (self.env.ref('shahtaj_order_booker.view_shahtaj_visit_form_booker').id, 'form'),
+                ],
+            }
         return {
             'type': 'ir.actions.act_window',
             'name': _('Sales Order'),

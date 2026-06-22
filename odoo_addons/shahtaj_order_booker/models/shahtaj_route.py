@@ -10,11 +10,9 @@ class ShahtajRoute(models.Model):
 
     name = fields.Char(required=True)
     zone_id = fields.Many2one('shahtaj.zone', string='Zone', required=True, ondelete='restrict')
-    shop_ids = fields.Many2many(
+    shop_ids = fields.One2many(
         'res.partner',
-        'shahtaj_route_partner_rel',
         'route_id',
-        'partner_id',
         string='Shops',
         domain=[('is_shahtaj_shop', '=', True)],
     )

@@ -26,3 +26,5 @@ access_shahtaj_visit_line_distributor,shahtaj.visit.line.distributor,model_shaht
 access_shahtaj_visit_order_booker,shahtaj.visit.order.booker,model_shahtaj_visit,group_shahtaj_order_booker,1,1,1,0
 access_shahtaj_visit_line_order_booker,shahtaj.visit.line.order.booker,model_shahtaj_visit_line,group_shahtaj_order_booker,1,1,1,1
 access_shahtaj_visit_checkin_wizard_booker,shahtaj.visit.checkin.wizard.booker,model_shahtaj_visit_checkin_wizard,group_shahtaj_order_booker,1,1,1,1
+access_sale_order_shahtaj_order_booker,sale.order.shahtaj.order.booker,sale.model_sale_order,group_shahtaj_order_booker,1,0,0,0
+access_sale_order_line_shahtaj_order_booker,sale.order.line.shahtaj.order.booker,sale.model_sale_order_line,group_shahtaj_order_booker,1,0,0,0
