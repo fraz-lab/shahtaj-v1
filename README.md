@@ -230,15 +230,31 @@ The following standard Odoo modules are required and are installed automatically
   python3.11 -m venv .venv
   ```
 
-### Upgrading from `tulip_order_booker` (older installs)
+### Upgrading the module
 
-The module was renamed to `shahtaj_order_booker`. On an existing database, upgrade after pulling the latest code:
+After pulling code changes on an existing database:
 
 ```bash
 python odoo/odoo-bin -c odoo.conf -d your_database -u shahtaj_order_booker
 ```
 
-Version `18.0.1.0.19` includes a migration that renames the module in the database automatically.
+### `bad marshal data` when loading the module
+
+Stale Python cache from an older install can cause this. Clear cache and retry:
+
+```powershell
+Get-ChildItem -Path "odoo_addons\shahtaj_order_booker" -Recurse -Directory -Filter "__pycache__" | Remove-Item -Recurse -Force
+python odoo/odoo-bin -c odoo.conf -d your_database -u shahtaj_order_booker
+```
+
+### PostgreSQL collation error on Windows
+
+If you see `collations with different collate and ctype values are not supported`, recreate the database with matching locale settings (both `C`):
+
+```sql
+DROP DATABASE IF EXISTS shahtaj_dev;
+CREATE DATABASE shahtaj_dev WITH OWNER = odoo ENCODING = 'UTF8' LC_COLLATE = 'C' LC_CTYPE = 'C' TEMPLATE = template0;
+```
 
 ---
 
