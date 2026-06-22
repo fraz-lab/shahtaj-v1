@@ -53,28 +53,6 @@
             <field name="perm_unlink" eval="False"/>
         </record>
 
-        <record id="rule_shahtaj_route_booker_read" model="ir.rule">
-            <field name="name">Order Booker: read assigned routes</field>
-            <field name="model_id" ref="model_shahtaj_route"/>
-            <field name="domain_force">[('weekly_schedule_ids.order_booker_id', '=', user.id)]</field>
-            <field name="groups" eval="[(4, ref('group_shahtaj_order_booker'))]"/>
-            <field name="perm_read" eval="True"/>
-            <field name="perm_write" eval="False"/>
-            <field name="perm_create" eval="False"/>
-            <field name="perm_unlink" eval="False"/>
-        </record>
-
-        <record id="rule_shahtaj_zone_booker_read" model="ir.rule">
-            <field name="name">Order Booker: read zones on assigned routes</field>
-            <field name="model_id" ref="model_shahtaj_zone"/>
-            <field name="domain_force">[('route_ids.weekly_schedule_ids.order_booker_id', '=', user.id)]</field>
-            <field name="groups" eval="[(4, ref('group_shahtaj_order_booker'))]"/>
-            <field name="perm_read" eval="True"/>
-            <field name="perm_write" eval="False"/>
-            <field name="perm_create" eval="False"/>
-            <field name="perm_unlink" eval="False"/>
-        </record>
-
         <record id="rule_shahtaj_distributor_read_bookers" model="ir.rule">
             <field name="name">Distributor: manage order booker users</field>
             <field name="model_id" ref="base.model_res_users"/>

@@ -17,11 +17,8 @@
                 ('route_id.weekly_schedule_ids.order_booker_id', '=', user.id),
             ]</field>
         </record>
-        <record id="rule_shahtaj_route_booker_read" model="ir.rule">
-            <field name="domain_force">[('weekly_schedule_ids.order_booker_id', '=', user.id)]</field>
-        </record>
-        <record id="rule_shahtaj_zone_booker_read" model="ir.rule">
-            <field name="domain_force">[('route_ids.weekly_schedule_ids.order_booker_id', '=', user.id)]</field>
-        </record>
+        <!-- Order bookers may pick any zone/route when registering shops -->
+        <delete model="ir.rule" id="rule_shahtaj_route_booker_read"/>
+        <delete model="ir.rule" id="rule_shahtaj_zone_booker_read"/>
     </data>
 </odoo>

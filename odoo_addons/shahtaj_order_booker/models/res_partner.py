@@ -100,30 +100,15 @@ class ResPartner(models.Model):
     )
 
     @api.model
-    def _get_order_booker_routes(self):
-        """Routes assigned to this booker via weekly schedules."""
-        Schedule = self.env['shahtaj.weekly.schedule']
-        return Schedule.search([
-            ('order_booker_id', '=', self.env.uid),
-            ('active', '=', True),
-        ]).mapped('route_id').filtered('active')
-
-    @api.model
     def _get_allowed_zone_ids(self):
-        Zone = self.env['shahtaj.zone']
-        if self._is_order_booker_only():
-            return self._get_order_booker_routes().mapped('zone_id').ids
-        return Zone.search([('active', '=', True)]).ids
+        return self.env['shahtaj.zone'].search([('active', '=', True)]).ids
 
     @api.model
     def _get_allowed_route_ids(self, zone_id=None):
-        if self._is_order_booker_only():
-            routes = self._get_order_booker_routes()
-        else:
-            routes = self.env['shahtaj.route'].search([('active', '=', True)])
+        domain = [('active', '=', True)]
         if zone_id:
-            routes = routes.filtered(lambda r: r.zone_id.id == zone_id)
-        return routes.ids
+            domain.append(('zone_id', '=', zone_id))
+        return self.env['shahtaj.route'].search(domain).ids
 
     @api.depends('zone_id')
     @api.depends_context('uid')
@@ -135,15 +120,6 @@ class ResPartner(models.Model):
             zone_id = partner.zone_id.id if partner.zone_id else None
             route_ids = self._get_allowed_route_ids(zone_id=zone_id)
             partner.allowed_route_ids = self.env['shahtaj.route'].browse(route_ids)
-
-    @api.model
-    def _is_order_booker_only(self):
-        user = self.env.user
-        if user.has_group('base.group_system'):
-            return False
-        if user.has_group('shahtaj_order_booker.group_shahtaj_distributor'):
-            return False
-        return user.has_group('shahtaj_order_booker.group_shahtaj_order_booker')
 
     @api.depends('legacy_balance_move_id')
     def _compute_outstanding_balance(self):

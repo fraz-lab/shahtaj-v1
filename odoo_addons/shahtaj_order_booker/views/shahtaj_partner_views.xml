@@ -139,7 +139,7 @@
                     <field name="currency_id" invisible="1"/>
                     <div class="alert alert-info" role="alert">
                         Submit shop details for distributor approval.
-                        Select a zone first, then choose a route in that zone.
+                        Select a zone, then choose a route in that zone.
                     </div>
                     <div class="oe_title">
                         <label for="name" string="Shop Name"/>
