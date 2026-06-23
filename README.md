@@ -8,7 +8,7 @@ Custom **Odoo 18** application for field sales and order booking. Distributors m
 |------|-------|
 | **Display name** | Shahtaj Order Booker |
 | **Technical module name** | `shahtaj_order_booker` |
-| **Odoo version** | 18.0 |
+| **Odoo version** | 19.0 |
 | **Python version** | 3.10 or 3.11 (recommended; Odoo 18 also supports 3.12) |
 | **License** | LGPL-3 |
 
