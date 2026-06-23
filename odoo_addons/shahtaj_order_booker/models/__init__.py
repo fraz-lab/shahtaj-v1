@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Model load order: territory → shops → schedules → visits → targets → Odoo extensions.
 
 from . import shahtaj_zone
 from . import shahtaj_route

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Distributor wizard: create a new order booker login with the booker security group."""
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
@@ -38,7 +39,7 @@ class ShahtajCreateOrderBookerWizard(models.TransientModel):
             'login': self.login,
             'password': self.password,
             'shahtaj_employee_code': self.shahtaj_employee_code,
-            'groups_id': [(6, 0, [booker_group.id])],
+            'group_ids': [(6, 0, [booker_group.id])],
         })
         return {
             'type': 'ir.actions.act_window',

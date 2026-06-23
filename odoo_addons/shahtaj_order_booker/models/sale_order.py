@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Link confirmed sales orders back to the shop visit and daily task."""
 from odoo import fields, models
 
 

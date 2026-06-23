@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+"""Weekly plan: which order booker works which route on which weekday.
+
+Changing schedules refreshes visit tasks for the next ~2 weeks.
+Today's schedule lines are locked so visit stats are not broken mid-day.
+"""
 from datetime import timedelta
 
 from odoo import _, api, fields, models
@@ -72,13 +77,10 @@ class ShahtajWeeklySchedule(models.Model):
         help='Schedule lines for today cannot be edited — protects visit statistics.',
     )
 
-    _sql_constraints = [
-        (
-            'booker_route_day_unique',
-            'unique(order_booker_id, route_id, day_of_week)',
-            'This order booker already has this route on the selected day.',
-        ),
-    ]
+    _booker_route_day_unique = models.Constraint(
+        'unique(order_booker_id, route_id, day_of_week)',
+        'This order booker already has this route on the selected day.',
+    )
 
     @api.depends('order_booker_id', 'route_id', 'day_of_week')
     def _compute_name(self):
@@ -141,6 +143,7 @@ class ShahtajWeeklySchedule(models.Model):
         ))
 
     def _check_day_not_locked_for_write(self, vals):
+        # Prevent changing today's route assignment after visits may have started.
         locked_fields = {'route_id', 'day_of_week', 'active', 'order_booker_id'}
         if not locked_fields.intersection(vals):
             return
@@ -148,6 +151,7 @@ class ShahtajWeeklySchedule(models.Model):
             schedule._raise_day_locked_error()
 
     def _sync_future_tasks(self):
+        """After schedule create/write, regenerate tasks for this booker (today + 13 days)."""
         today = fields.Date.context_today(self)
         end = fields.Date.add(today, days=13)
         Task = self.env['shahtaj.visit.task']

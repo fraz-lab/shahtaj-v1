@@ -4,7 +4,7 @@
     <menuitem id="menu_shahtaj_root"
               name="Shahtaj"
               sequence="5"
-              groups="shahtaj_order_booker.group_shahtaj_distributor,shahtaj_order_booker.group_shahtaj_order_booker"/>
+              web_icon="shahtaj_order_booker,static/description/icon.png"/>
 
     <!-- Distributor -->
     <menuitem id="menu_shahtaj_order_bookers"

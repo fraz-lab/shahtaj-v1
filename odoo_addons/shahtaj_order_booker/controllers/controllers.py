@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Placeholder for future HTTP/API routes (mobile app). Not used yet.
 # from odoo import http
 
 

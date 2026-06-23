@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Upgrade: remove deprecated order_booker_id column from route table."""
 
 def migrate(cr, version):
     cr.execute("""

@@ -1,9 +1,15 @@
 # -*- coding: utf-8 -*-
+"""Daily visit tasks: one row per shop per booker per date.
+
+Tasks are built from weekly schedules (cron, login, or manual wizard).
+Bookers check in via GPS; distributors can skip or cancel tasks.
+"""
 from datetime import timedelta
 
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
+# How many days ahead to auto-create tasks (today + this many days).
 AUTO_GENERATE_DAYS_AHEAD = 13
 
 
@@ -20,6 +26,7 @@ TASK_STATES = [
     ('cancelled', 'Cancelled'),
 ]
 
+# Fields order bookers may edit on their own tasks (see write()).
 BOOKER_WRITABLE_FIELDS = frozenset({'state', 'notes', 'visit_id'})
 
 
@@ -83,13 +90,10 @@ class ShahtajVisitTask(models.Model):
     )
     notes = fields.Text()
 
-    _sql_constraints = [
-        (
-            'shop_date_booker_unique',
-            'unique(shop_id, scheduled_date, order_booker_id)',
-            'A visit task for this shop, date, and order booker already exists.',
-        ),
-    ]
+    _shop_date_booker_unique = models.Constraint(
+        'unique(shop_id, scheduled_date, order_booker_id)',
+        'A visit task for this shop, date, and order booker already exists.',
+    )
 
     @api.depends('shop_id', 'scheduled_date', 'route_id')
     def _compute_name(self):
@@ -116,6 +120,7 @@ class ShahtajVisitTask(models.Model):
         self.write({'state': 'in_progress'})
 
     def action_check_in_at_shop(self):
+        """Open GPS wizard, or reopen visit if already checked in."""
         self.ensure_one()
         if self.visit_id and self.visit_id.state == 'in_progress':
             return self.action_open_visit()
@@ -172,6 +177,7 @@ class ShahtajVisitTask(models.Model):
         )
 
     def write(self, vals):
+        # Bookers cannot edit distributor-only fields on tasks.
         if self._is_booker_only_user() and not self.env.context.get('shahtaj_system_visit_write'):
             extra = set(vals) - BOOKER_WRITABLE_FIELDS
             if extra:
@@ -182,7 +188,7 @@ class ShahtajVisitTask(models.Model):
 
     @api.model
     def _generate_from_schedules(self, date_from, date_to, order_booker=None):
-        """Create visit tasks from weekly schedules for each date in range."""
+        """For each day in range: match weekday schedules → one task per shop on route."""
         Schedule = self.env['shahtaj.weekly.schedule']
         schedule_domain = [('active', '=', True)]
         if order_booker:
@@ -226,4 +232,5 @@ class ShahtajVisitTask(models.Model):
 
     @api.model
     def _cron_auto_generate_visit_tasks(self):
+        """Called daily by scheduled action for all bookers."""
         self._auto_generate_window()

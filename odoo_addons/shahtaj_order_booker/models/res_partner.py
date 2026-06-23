@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+"""Extend contacts (res.partner) to store retail shops.
+
+Shops belong to one zone and one route. Bookers can register shops (pending approval).
+Distributors approve shops and may set legacy balance, which posts to Odoo accounting.
+"""
 import math
 
 from odoo import _, api, fields, models
@@ -7,7 +12,7 @@ from odoo.tools import float_is_zero
 
 MAX_REGISTRATION_DISTANCE_M = 100.0
 
-# Allow Shahtaj roles to use accounting credit fields on shops without Invoicing app rights.
+# Let distributor and booker edit credit fields without full Invoicing app rights.
 _SHAHTAJ_CREDIT_GROUPS = (
     'account.group_account_invoice,account.group_account_readonly,'
     'shahtaj_order_booker.group_shahtaj_distributor,'
@@ -18,6 +23,7 @@ _SHAHTAJ_CREDIT_GROUPS = (
 class ResPartner(models.Model):
     _inherit = 'res.partner'
 
+    # --- Shop identity and territory (one shop → one route) ---
     credit_limit = fields.Float(groups=_SHAHTAJ_CREDIT_GROUPS)
     use_partner_credit_limit = fields.Boolean(groups=_SHAHTAJ_CREDIT_GROUPS)
 
@@ -83,6 +89,7 @@ class ResPartner(models.Model):
         compute='_compute_allowed_zones_routes',
     )
 
+    # --- Zone/route dropdowns on shop forms (all active records for bookers) ---
     @api.model
     def _get_allowed_zone_ids(self):
         return self.env['shahtaj.zone'].search([('active', '=', True)]).ids
@@ -107,6 +114,7 @@ class ResPartner(models.Model):
 
     @api.depends('legacy_balance_move_id')
     def _compute_outstanding_balance(self):
+        # Standard Odoo receivable balance for this customer (shop).
         for partner in self:
             partner.outstanding_balance = partner.sudo().credit
 
@@ -171,6 +179,7 @@ class ResPartner(models.Model):
                 raise ValidationError(_('Shop GPS latitude and longitude are required.'))
 
     def _prepare_shop_vals(self, vals):
+        """Set defaults when creating a shop from distributor or booker forms."""
         vals = dict(vals)
         if vals.get('is_shahtaj_shop') or self.env.context.get('shahtaj_shop_form'):
             vals.setdefault('is_shahtaj_shop', True)
@@ -192,7 +201,7 @@ class ResPartner(models.Model):
         return vals
 
     def _post_legacy_balance_entry(self):
-        """Post opening receivable for legacy balance to Odoo accounting."""
+        """Post one journal entry: debit shop receivable, credit opening balance."""
         AccountMove = self.env['account.move'].sudo()
         AccountJournal = self.env['account.journal'].sudo()
         for partner in self.filtered(
@@ -269,6 +278,7 @@ class ResPartner(models.Model):
         if vals.get('legacy_balance_move_id') and not self.env.context.get(
             'shahtaj_posting_legacy_move'
         ):
+            # Block manual edits; only _post_legacy_balance_entry may set this link.
             raise UserError(_('Legacy balance journal entry cannot be changed manually.'))
         res = super().write(vals)
         if any(k in vals for k in ('is_shahtaj_shop', 'name', 'owner_name', 'owner_phone',
@@ -281,6 +291,7 @@ class ResPartner(models.Model):
         return res
 
     def action_approve_shop(self):
+        """Distributor approves a pending shop; posts legacy balance if set."""
         pending = self.filtered(lambda p: p.shop_approval_state != 'approved')
         pending.write({'shop_approval_state': 'approved', 'is_shahtaj_shop': True})
         pending._post_legacy_balance_entry()
