@@ -65,6 +65,9 @@
                             <field name="line_ids" readonly="state != 'in_progress'">
                                 <list editable="bottom">
                                     <field name="product_id"/>
+                                    <field name="shahtaj_qty_unlimited" column_invisible="1"/>
+                                    <field name="shahtaj_qty_bookable" string="Available"
+                                           invisible="shahtaj_qty_unlimited"/>
                                     <field name="product_uom_qty"/>
                                     <field name="price_unit"/>
                                     <field name="subtotal"/>
@@ -131,6 +134,9 @@
                         <field name="line_ids" nolabel="1">
                             <list editable="bottom">
                                 <field name="product_id"/>
+                                <field name="shahtaj_qty_unlimited" column_invisible="1"/>
+                                <field name="shahtaj_qty_bookable" string="Available"
+                                       invisible="shahtaj_qty_unlimited"/>
                                 <field name="product_uom_qty"/>
                                 <field name="price_unit"/>
                                 <field name="subtotal"/>
@@ -141,7 +147,8 @@
                         <field name="outcome" readonly="1"/>
                         <field name="ended_at" readonly="1"/>
                         <field name="duration_minutes" readonly="1" string="Total Visit (min)"/>
-                        <field name="sale_order_id" readonly="1" invisible="outcome != 'order'"/>
+                        <field name="sale_order_name" readonly="1" invisible="outcome != 'order'"/>
+                        <field name="sale_order_id" invisible="1"/>
                         <field name="order_amount" readonly="1" invisible="outcome != 'order'"/>
                     </group>
                 </sheet>

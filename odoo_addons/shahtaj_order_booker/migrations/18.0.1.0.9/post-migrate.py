@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Upgrade: fix distributor record rule domain for reading order booker users."""
 
 def migrate(cr, version):
     domain = "['|', ('shahtaj_is_order_booker', '=', True), ('id', '=', user.id)]"

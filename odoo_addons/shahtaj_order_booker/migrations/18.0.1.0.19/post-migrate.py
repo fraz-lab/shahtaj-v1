@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Upgrade: rename module tulip_order_booker → shahtaj_order_booker in registry."""
 
 def migrate(cr, version):
     """Rename module technical name from tulip_order_booker to shahtaj_order_booker."""

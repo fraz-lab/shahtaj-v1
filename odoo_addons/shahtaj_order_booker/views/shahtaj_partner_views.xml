@@ -45,7 +45,7 @@
                     <button name="action_view_legacy_balance_move" type="object"
                             string="Legacy Balance Entry"
                             invisible="not legacy_balance_move_id"
-                            groups="account.group_account_readonly,account.group_account_invoice,base.group_system"/>
+                            groups="shahtaj_order_booker.group_shahtaj_distributor,account.group_account_readonly,account.group_account_invoice"/>
                     <field name="shop_approval_state" widget="statusbar"
                            statusbar_visible="pending,approved,rejected"/>
                 </header>
@@ -57,6 +57,51 @@
                     <field name="allowed_route_ids" invisible="1"/>
                     <field name="legacy_balance_move_id" invisible="1"/>
                     <field name="currency_id" invisible="1"/>
+                    <field name="sale_order_count" invisible="1"/>
+                    <field name="account_move_count" invisible="1"/>
+                    <field name="credit" invisible="1"/>
+                    <div class="oe_button_box" name="button_box">
+                        <button type="object"
+                                name="action_shahtaj_view_sale_orders"
+                                class="oe_stat_button"
+                                icon="fa-shopping-cart"
+                                groups="shahtaj_order_booker.group_shahtaj_distributor">
+                            <field name="sale_order_count" widget="statinfo" string="Sales Orders"/>
+                        </button>
+                        <button type="object"
+                                name="action_view_partner_invoices"
+                                class="oe_stat_button"
+                                icon="fa-pencil-square-o"
+                                groups="shahtaj_order_booker.group_shahtaj_distributor">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value">
+                                    <field name="total_invoiced" widget="monetary"
+                                           options="{'currency_field': 'currency_id'}"/>
+                                </span>
+                                <span class="o_stat_text">Invoiced</span>
+                            </div>
+                        </button>
+                        <button type="object"
+                                name="action_shahtaj_view_customer_payments"
+                                class="oe_stat_button"
+                                icon="fa-money"
+                                groups="shahtaj_order_booker.group_shahtaj_distributor">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value">
+                                    <field name="outstanding_balance" widget="monetary"
+                                           options="{'currency_field': 'currency_id'}"/>
+                                </span>
+                                <span class="o_stat_text">Outstanding</span>
+                            </div>
+                        </button>
+                        <button type="object"
+                                name="action_shahtaj_view_receivable_entries"
+                                class="oe_stat_button"
+                                icon="fa-book"
+                                groups="shahtaj_order_booker.group_shahtaj_distributor">
+                            <span class="o_stat_text">Receivable Lines</span>
+                        </button>
+                    </div>
                     <div class="oe_title">
                         <label for="name" string="Shop Name"/>
                         <h1>
@@ -90,12 +135,22 @@
                     </group>
                     <group string="Credit and Balance">
                         <group>
-                            <field name="credit_limit" string="Credit Limit (Rs)"/>
+                            <field name="use_partner_credit_limit"/>
+                            <field name="credit_limit" string="Credit Limit (Rs)"
+                                   invisible="not use_partner_credit_limit"/>
                             <field name="legacy_balance" string="Legacy Balance (Rs)"
                                    readonly="legacy_balance_move_id"/>
+                            <field name="property_payment_term_id"
+                                   string="Payment Terms"
+                                   options="{'no_create': True}"/>
                         </group>
                         <group>
                             <field name="outstanding_balance" string="Outstanding Balance (Rs)"/>
+                            <field name="credit" string="Total Receivable (Odoo)"
+                                   groups="account.group_account_invoice,account.group_account_readonly"/>
+                            <field name="property_account_receivable_id"
+                                   string="Receivable Account"
+                                   options="{'no_create': True}"/>
                         </group>
                     </group>
                     <group string="Verification Photos">

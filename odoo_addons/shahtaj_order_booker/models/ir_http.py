@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""On booker login: update last seen and ensure visit tasks exist for coming days."""
 from odoo import fields, models
 from odoo.http import request
 
@@ -7,6 +8,7 @@ class IrHttp(models.AbstractModel):
     _inherit = 'ir.http'
 
     def session_info(self):
+        # Runs when Odoo web client loads session (each login / page load).
         if request.session.uid:
             user = request.env.user
             if user.has_group('shahtaj_order_booker.group_shahtaj_order_booker'):

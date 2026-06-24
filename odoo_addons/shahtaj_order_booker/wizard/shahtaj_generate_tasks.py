@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Distributor tool: manually generate visit tasks for a date range."""
 from datetime import timedelta
 
 from odoo import _, api, fields, models

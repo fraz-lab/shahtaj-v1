@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Upgrade: copy old many-to-many shop-route links into res_partner.route_id."""
 
 def migrate(cr, version):
     """Move shop↔route links from M2M junction table to res_partner.route_id."""

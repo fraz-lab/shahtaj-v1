@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Sales route inside a zone. Shops link via res.partner.route_id (one route per shop)."""
 from odoo import api, fields, models
 from odoo.exceptions import ValidationError
 
@@ -10,6 +11,7 @@ class ShahtajRoute(models.Model):
 
     name = fields.Char(required=True)
     zone_id = fields.Many2one('shahtaj.zone', string='Zone', required=True, ondelete='restrict')
+    # Shops on this route (inverse of res.partner.route_id).
     shop_ids = fields.One2many(
         'res.partner',
         'route_id',
@@ -26,7 +28,9 @@ class ShahtajRoute(models.Model):
 
     def _compute_shop_count(self):
         for route in self:
-            route.shop_count = len(route.shop_ids)
+            route.shop_count = len(route.shop_ids.filtered(
+                lambda s: s.shop_approval_state == 'approved'
+            ))
 
     @api.constrains('name', 'zone_id')
     def _check_required_fields(self):

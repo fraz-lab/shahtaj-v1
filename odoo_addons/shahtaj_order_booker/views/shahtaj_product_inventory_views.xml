@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Distributor product & inventory menus under Shahtaj (simplified UI). -->
+
+    <menuitem id="menu_shahtaj_products"
+              name="Products"
+              parent="menu_shahtaj_root"
+              sequence="45"
+              groups="shahtaj_order_booker.group_shahtaj_distributor"/>
+
+    <menuitem id="menu_shahtaj_quick_add_product"
+              name="Quick Add Product"
+              parent="menu_shahtaj_products"
+              action="action_shahtaj_quick_add_product"
+              sequence="5"/>
+
+    <menuitem id="menu_shahtaj_products_list"
+              name="Product List"
+              parent="menu_shahtaj_products"
+              action="action_shahtaj_product_list"
+              sequence="10"/>
+
+    <menuitem id="menu_shahtaj_products_advanced"
+              name="Advanced Product Settings"
+              parent="menu_shahtaj_products"
+              action="action_shahtaj_product_advanced"
+              sequence="90"/>
+
+    <menuitem id="menu_shahtaj_inventory"
+              name="Inventory"
+              parent="menu_shahtaj_root"
+              sequence="46"
+              groups="shahtaj_order_booker.group_shahtaj_distributor"/>
+
+    <menuitem id="menu_shahtaj_add_stock"
+              name="Add Stock"
+              parent="menu_shahtaj_inventory"
+              action="action_shahtaj_add_stock"
+              sequence="5"/>
+
+    <menuitem id="menu_shahtaj_inventory_overview"
+              name="Stock Overview"
+              parent="menu_shahtaj_inventory"
+              action="action_shahtaj_stock_overview"
+              sequence="10"/>
+
+</odoo>

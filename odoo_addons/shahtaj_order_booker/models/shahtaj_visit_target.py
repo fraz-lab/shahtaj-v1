@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+"""Sales/visit targets per order booker for a date range.
+
+Progress is computed from completed visits and confirmed sale orders.
+"""
 from datetime import timedelta
 
 from odoo import _, api, fields, models
@@ -81,6 +85,7 @@ class ShahtajVisitTarget(models.Model):
         'order_booker_id', 'product_id',
     )
     def _compute_progress(self):
+        """Count visits, orders, sales total, or product qty in the target period."""
         Task = self.env['shahtaj.visit.task']
         SaleOrder = self.env['sale.order']
         for target in self:

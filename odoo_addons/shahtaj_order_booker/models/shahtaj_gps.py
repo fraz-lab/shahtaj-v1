@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
+"""GPS helpers: distance between booker and shop for check-in validation."""
 import math
 
+# Maximum metres from shop GPS to allow starting a visit.
 MAX_SHOP_DISTANCE_M = 100.0
 
 

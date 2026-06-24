@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Sales zone — top level of territory (managed by distributor)."""
 from odoo import api, fields, models
 from odoo.exceptions import ValidationError
 

@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+"""Shop visit: GPS check-in, timer, draft order lines, and place order.
+
+One visit per visit task. Ends with a sales order or 'no order'.
+Order bookers may only edit products and notes during an active visit.
+"""
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from odoo.tools import float_compare
@@ -17,6 +22,7 @@ VISIT_OUTCOMES = [
     ('no_order', 'No Order'),
 ]
 
+# Fields a booker may change on their own during a visit (security in write()).
 BOOKER_VISIT_WRITABLE_FIELDS = frozenset({'line_ids', 'notes'})
 
 
@@ -90,6 +96,11 @@ class ShahtajVisit(models.Model):
         readonly=True,
         copy=False,
     )
+    sale_order_name = fields.Char(
+        string='Order Reference',
+        related='sale_order_id.name',
+        readonly=True,
+    )
     order_amount = fields.Monetary(
         string='Order Total',
         related='sale_order_id.amount_total',
@@ -106,13 +117,10 @@ class ShahtajVisit(models.Model):
     )
     notes = fields.Text()
 
-    _sql_constraints = [
-        (
-            'visit_task_unique',
-            'unique(visit_task_id)',
-            'This visit task already has a shop visit record.',
-        ),
-    ]
+    _visit_task_unique = models.Constraint(
+        'unique(visit_task_id)',
+        'This visit task already has a shop visit record.',
+    )
 
     @api.depends('shop_id', 'started_at', 'order_booker_id')
     def _compute_name(self):
@@ -132,6 +140,7 @@ class ShahtajVisit(models.Model):
                 visit.duration_minutes = (visit.duration_seconds or 0) / 60.0
 
     def _is_booker_only_user(self):
+        """True when user is a booker but not distributor or admin."""
         user = self.env.user
         return (
             user.has_group('shahtaj_order_booker.group_shahtaj_order_booker')
@@ -140,6 +149,7 @@ class ShahtajVisit(models.Model):
         )
 
     def write(self, vals):
+        # System code sets visit/task state via context shahtaj_system_visit_write.
         if (
             self._is_booker_only_user()
             and not self.env.context.get('shahtaj_system_visit_write')
@@ -161,6 +171,7 @@ class ShahtajVisit(models.Model):
 
     @api.model
     def _validate_check_in_coordinates(self, shop, latitude, longitude):
+        """Reject check-in if booker is farther than MAX_SHOP_DISTANCE_M from shop."""
         if not shop.partner_latitude or not shop.partner_longitude:
             raise UserError(_(
                 'Shop "%(shop)s" has no GPS coordinates. '
@@ -193,6 +204,12 @@ class ShahtajVisit(models.Model):
         task.ensure_one()
         if task.order_booker_id != self.env.user and not self.env.su:
             raise UserError(_('You can only check in to your own visit tasks.'))
+        if task.shop_id.shop_approval_state != 'approved':
+            raise UserError(_(
+                'Shop "%(shop)s" is not approved yet. '
+                'You cannot visit until the distributor approves it.',
+                shop=task.shop_id.name,
+            ))
         if task.state in ('completed', 'cancelled', 'skipped'):
             raise UserError(_('This visit task is already closed.'))
         existing = self.search([('visit_task_id', '=', task.id)], limit=1)
@@ -226,7 +243,35 @@ class ShahtajVisit(models.Model):
         })
         return visit
 
+    def action_open_sale_order(self):
+        self.ensure_one()
+        if not self.sale_order_id:
+            raise UserError(_('No sales order linked to this visit.'))
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Sales Order'),
+            'res_model': 'sale.order',
+            'res_id': self.sale_order_id.id,
+            'view_mode': 'form',
+            'target': 'current',
+        }
+
+    def action_open_shop(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Shop'),
+            'res_model': 'res.partner',
+            'res_id': self.shop_id.id,
+            'view_mode': 'form',
+            'target': 'current',
+            'views': [
+                (self.env.ref('shahtaj_order_booker.view_shahtaj_shop_form').id, 'form'),
+            ],
+        }
+
     def _finish_visit(self, outcome):
+        """Close visit and mark linked task completed (order or no_order)."""
         self.ensure_one()
         if self.state != 'in_progress':
             raise UserError(_('Only an in-progress visit can be ended.'))
@@ -263,12 +308,30 @@ class ShahtajVisit(models.Model):
                 limit=shop.credit_limit,
             ))
 
+    def _check_visit_line_stock(self):
+        """Ensure each product total in this visit does not exceed bookable qty."""
+        for visit in self.filtered(lambda v: v.state == 'in_progress'):
+            totals = {}
+            for line in visit.line_ids:
+                if not line.product_id:
+                    continue
+                totals.setdefault(line.product_id, 0.0)
+                totals[line.product_id] += line.product_uom_qty
+            exclude_lines = visit.line_ids.ids
+            for product, total_qty in totals.items():
+                product._check_shahtaj_bookable_qty(
+                    total_qty,
+                    exclude_visit_line_ids=exclude_lines,
+                )
+
     def action_place_order(self):
+        """Create and confirm sale order from visit lines; finish visit."""
         self.ensure_one()
         if self.state != 'in_progress':
             raise UserError(_('This visit is not in progress.'))
         if not self.line_ids:
             raise UserError(_('Add at least one product before placing an order.'))
+        self._check_visit_line_stock()
         order_lines = []
         order_total = 0.0
         for line in self.line_ids:
@@ -282,6 +345,7 @@ class ShahtajVisit(models.Model):
                 'price_unit': line.price_unit,
             }))
         self._check_credit_limit(order_total)
+        # sudo: booker has no Sales app rights; order is linked to visit and booker.
         order = self.env['sale.order'].sudo().create({
             'partner_id': self.shop_id.id,
             'user_id': self.order_booker_id.id,
@@ -295,6 +359,7 @@ class ShahtajVisit(models.Model):
             'sale_order_id': order.id,
         })
         self._finish_visit('order')
+        # Bookers see completed visit; distributors can open the sales order form.
         if self._is_booker_only_user():
             return {
                 'type': 'ir.actions.act_window',
@@ -323,6 +388,7 @@ class ShahtajVisit(models.Model):
 
 
 class ShahtajVisitLine(models.Model):
+    """Draft cart lines on a visit before Place Order creates the sale order."""
     _name = 'shahtaj.visit.line'
     _description = 'Shop Visit Order Line'
     _order = 'id'
@@ -339,6 +405,14 @@ class ShahtajVisitLine(models.Model):
         required=True,
         domain=[('sale_ok', '=', True)],
     )
+    shahtaj_qty_bookable = fields.Float(
+        string='Available to Book',
+        compute='_compute_shahtaj_qty_bookable',
+        digits='Product Unit of Measure',
+    )
+    shahtaj_qty_unlimited = fields.Boolean(
+        compute='_compute_shahtaj_qty_bookable',
+    )
     product_uom_qty = fields.Float(
         string='Quantity',
         default=1.0,
@@ -354,10 +428,39 @@ class ShahtajVisitLine(models.Model):
         compute='_compute_subtotal',
     )
 
+    @api.depends(
+        'product_id',
+        'product_uom_qty',
+        'visit_id.state',
+        'visit_id.line_ids.product_uom_qty',
+        'visit_id.line_ids.product_id',
+    )
+    def _compute_shahtaj_qty_bookable(self):
+        for line in self:
+            if not line.product_id:
+                line.shahtaj_qty_bookable = 0.0
+                line.shahtaj_qty_unlimited = False
+                continue
+            exclude = line.visit_id.line_ids.ids if line.visit_id else line.ids
+            bookable = line.product_id._get_shahtaj_bookable_qty(
+                exclude_visit_line_ids=exclude,
+            )
+            if bookable is None:
+                line.shahtaj_qty_unlimited = True
+                line.shahtaj_qty_bookable = 0.0
+            else:
+                line.shahtaj_qty_unlimited = False
+                line.shahtaj_qty_bookable = bookable
+
     @api.onchange('product_id')
     def _onchange_product_id(self):
         if self.product_id:
             self.price_unit = self.product_id.lst_price
+
+    @api.constrains('product_uom_qty', 'product_id', 'visit_id')
+    def _check_bookable_quantity(self):
+        for visit in self.mapped('visit_id').filtered(lambda v: v.state == 'in_progress'):
+            visit._check_visit_line_stock()
 
     @api.depends('product_uom_qty', 'price_unit')
     def _compute_subtotal(self):

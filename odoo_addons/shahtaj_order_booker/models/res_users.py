@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
+"""Extend users with booker profile, online status, and dashboard stats.
+
+Distributor hubs read these computed fields for tasks, schedules, and targets.
+"""
 from datetime import timedelta
 
 from odoo import _, api, fields, models
 
 from .shahtaj_visit_task import shahtaj_week_bounds
 
+# Treat booker as online if seen within this many minutes.
 ONLINE_THRESHOLD_MINUTES = 5
 
 
@@ -84,15 +89,13 @@ class ResUsers(models.Model):
         compute='_compute_shahtaj_stats',
     )
 
-    @api.depends('groups_id')
+    @api.depends('group_ids')
     def _compute_shahtaj_is_order_booker(self):
-        booker_group = self.env.ref(
-            'shahtaj_order_booker.group_shahtaj_order_booker',
-            raise_if_not_found=False,
-        )
-        booker_gid = booker_group.id if booker_group else False
+        """Stored flag used in domains and distributor booker management."""
         for user in self:
-            user.shahtaj_is_order_booker = booker_gid in user.groups_id.ids
+            user.shahtaj_is_order_booker = user.has_group(
+                'shahtaj_order_booker.group_shahtaj_order_booker'
+            )
 
     @api.depends('shahtaj_last_seen_at', 'partner_id.im_status', 'shahtaj_is_order_booker')
     def _compute_shahtaj_online_status(self):
@@ -113,6 +116,7 @@ class ResUsers(models.Model):
                 user.shahtaj_online_status = 'offline'
 
     def _compute_task_subsets(self):
+        """Split visit tasks into today / this week / older for booker hub views."""
         Task = self.env['shahtaj.visit.task']
         today = fields.Date.context_today(self)
         week_start, week_end = shahtaj_week_bounds(today)
@@ -146,6 +150,7 @@ class ResUsers(models.Model):
         'partner_id.im_status',
     )
     def _compute_shahtaj_stats(self):
+        """Counts for distributor order booker form and visit hub."""
         Task = self.env['shahtaj.visit.task']
         today = fields.Date.context_today(self)
         week_start, week_end = shahtaj_week_bounds(today)

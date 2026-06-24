@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Popup: booker enters GPS coordinates to start a shop visit."""
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
@@ -38,6 +39,7 @@ class ShahtajVisitCheckinWizard(models.TransientModel):
 
     @api.model
     def default_get(self, fields_list):
+        # Pre-fill coords from shop when testing; browser GPS fills them in production.
         res = super().default_get(fields_list)
         task_id = self.env.context.get('default_visit_task_id')
         if task_id:
