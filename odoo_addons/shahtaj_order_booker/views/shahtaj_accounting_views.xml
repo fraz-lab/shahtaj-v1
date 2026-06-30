@@ -121,13 +121,20 @@
         <field name="name">Customer Payments</field>
         <field name="res_model">account.payment</field>
         <field name="view_mode">list,form,kanban</field>
+        <field name="view_id" ref="view_account_payment_tree_shahtaj"/>
         <field name="domain">[
             ('partner_type', '=', 'customer'),
+            '|', '|',
             ('partner_id.is_shahtaj_shop', '=', True),
+            ('partner_id.parent_id.is_shahtaj_shop', '=', True),
+            ('partner_id.commercial_partner_id.is_shahtaj_shop', '=', True),
         ]</field>
         <field name="context">{
+            'default_payment_type': 'inbound',
             'default_partner_type': 'customer',
-            'search_default_partner_id': 1,
+            'search_default_inbound_filter': 1,
+            'default_move_journal_types': ('bank', 'cash'),
+            'display_account_trust': True,
         }</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
@@ -137,41 +144,6 @@
         </field>
     </record>
 
-    <!-- Menus under Shahtaj -->
-    <menuitem id="menu_shahtaj_accounting"
-              name="Accounting"
-              parent="menu_shahtaj_root"
-              sequence="50"
-              groups="shahtaj_order_booker.group_shahtaj_distributor"/>
-
-    <menuitem id="menu_shahtaj_field_sales_orders"
-              name="Field Sales Orders"
-              parent="menu_shahtaj_accounting"
-              action="action_shahtaj_field_sales_orders"
-              sequence="10"/>
-
-    <menuitem id="menu_shahtaj_orders_to_invoice"
-              name="Orders to Invoice"
-              parent="menu_shahtaj_accounting"
-              action="action_shahtaj_orders_to_invoice"
-              sequence="15"/>
-
-    <menuitem id="menu_shahtaj_customer_invoices"
-              name="Customer Invoices"
-              parent="menu_shahtaj_accounting"
-              action="action_shahtaj_customer_invoices"
-              sequence="20"/>
-
-    <menuitem id="menu_shahtaj_customer_payments"
-              name="Customer Payments"
-              parent="menu_shahtaj_accounting"
-              action="action_shahtaj_customer_payments"
-              sequence="25"/>
-
-    <menuitem id="menu_shahtaj_shop_balances"
-              name="Shop Balances"
-              parent="menu_shahtaj_accounting"
-              action="action_shahtaj_shop_balances"
-              sequence="30"/>
+    <!-- Menus: see shahtaj_menus.xml (hub) and shahtaj_accounting_hub_views.xml -->
 
 </odoo>

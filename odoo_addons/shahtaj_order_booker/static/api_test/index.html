@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Shahtaj Order Booker — API Explorer</title>
-  <link rel="stylesheet" href="/shahtaj_order_booker/static/api_test/style.css?v=4"/>
+  <link rel="stylesheet" href="/shahtaj_order_booker/static/api_test/style.css?v=5"/>
 </head>
 <body>
   <header class="app-header">
@@ -55,7 +55,7 @@
       <div class="panel-head">
         <div>
           <h2>My Tasks Today</h2>
-          <p class="endpoint-tag">POST /api/shahtaj/v1/tasks/today · check-in · skip · notes</p>
+          <p class="endpoint-tag">POST /api/shahtaj/v1/tasks/today · <em>List today tasks</em></p>
         </div>
         <button id="btn-refresh-tasks" class="secondary sm">Refresh</button>
       </div>
@@ -94,7 +94,7 @@
       <div class="panel-head">
         <div>
           <h2>Active visit &amp; order</h2>
-          <p class="endpoint-tag">visits/active · line/add|update|remove · place-order · products/list</p>
+          <p class="endpoint-tag">visits/active · line/add|update|remove · place-order · <em>Close empty visit</em> (notes required)</p>
         </div>
         <button id="btn-refresh-visit" class="secondary sm">Refresh</button>
       </div>
@@ -118,8 +118,8 @@
         <p id="products-meta" class="meta"></p>
         <div id="product-cards" class="card-grid compact"></div>
 
-        <label>Visit notes
-          <textarea id="inp-visit-notes" rows="2" placeholder="Notes during visit..."></textarea>
+        <label>Visit notes <span class="muted">(required for end without order)</span>
+          <textarea id="inp-visit-notes" rows="2" placeholder="Reason if no order, or notes during visit..."></textarea>
         </label>
         <div class="actions-row">
           <button id="btn-save-visit-notes" class="secondary sm">Save visit notes</button>
@@ -142,9 +142,13 @@
       <div class="panel-head">
         <div>
           <h2>My shop visits</h2>
-          <p class="endpoint-tag">POST /api/shahtaj/v1/visits/mine · visits/get</p>
+          <p class="endpoint-tag">POST /api/shahtaj/v1/visits/mine · visits/get · <em>Past visits list</em></p>
         </div>
         <button id="btn-refresh-history" class="secondary sm">Refresh</button>
+      </div>
+      <div class="grid-2 history-filters">
+        <label>From (YYYY-MM-DD)<input id="hist-date-from" type="date"/></label>
+        <label>To (YYYY-MM-DD)<input id="hist-date-to" type="date"/></label>
       </div>
       <div id="history-list"></div>
     </section>
@@ -154,7 +158,7 @@
       <div class="panel-head">
         <div>
           <h2>My weekly schedule</h2>
-          <p class="endpoint-tag">POST /api/shahtaj/v1/schedule/weekly</p>
+          <p class="endpoint-tag">POST /api/shahtaj/v1/schedule/weekly · <em>Weekly route plan</em></p>
         </div>
         <button id="btn-refresh-schedule" class="secondary sm">Refresh</button>
       </div>
@@ -166,7 +170,7 @@
       <div class="panel-head">
         <div>
           <h2>My targets</h2>
-          <p class="endpoint-tag">POST /api/shahtaj/v1/targets/mine</p>
+          <p class="endpoint-tag">POST /api/shahtaj/v1/targets/mine · <em>List sales targets</em></p>
         </div>
         <button id="btn-refresh-targets" class="secondary sm">Refresh</button>
       </div>
@@ -178,7 +182,7 @@
       <div class="panel-head">
         <div>
           <h2>Register shop</h2>
-          <p class="endpoint-tag">POST /api/shahtaj/v1/shops/register · shops/mine · shops/get</p>
+          <p class="endpoint-tag">POST /api/shahtaj/v1/shops/register · <em>Register new shop</em></p>
         </div>
         <button id="btn-refresh-shops" class="secondary sm">Refresh my shops</button>
       </div>
@@ -224,12 +228,13 @@
         </div>
         <button id="btn-clear-log" class="ghost sm">Clear log</button>
       </div>
+      <div id="api-quick-index" class="card api-index"></div>
       <div id="endpoint-reference" class="endpoint-ref card"></div>
       <h3 class="log-heading">Live request log</h3>
       <div id="api-log" class="log"></div>
     </section>
   </div>
 
-  <script src="/shahtaj_order_booker/static/api_test/app.js?v=5"></script>
+  <script src="/shahtaj_order_booker/static/api_test/app.js?v=6"></script>
 </body>
 </html>

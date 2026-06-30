@@ -107,6 +107,10 @@
                     <button name="action_open_visit" type="object" string="Continue Visit"
                             class="oe_highlight"
                             invisible="not visit_id or state in ('completed', 'cancelled', 'skipped')"/>
+                    <button name="action_open_active_visit_from_task" type="object"
+                            string="Go to Active Visit"
+                            class="oe_highlight"
+                            invisible="not shahtaj_has_active_visit_elsewhere"/>
                     <button name="action_skip" type="object" string="Skip"
                             invisible="state in ('completed', 'cancelled', 'skipped') or visit_id"/>
                     <field name="state" widget="statusbar"
@@ -114,6 +118,12 @@
                 </header>
                 <sheet>
                     <field name="visit_id" invisible="1"/>
+                    <field name="shahtaj_has_active_visit_elsewhere" invisible="1"/>
+                    <div class="alert alert-warning" role="alert"
+                         invisible="not shahtaj_has_active_visit_elsewhere">
+                        You have an active visit at another shop.
+                        Finish it or use <b>Go to Active Visit</b> before starting here.
+                    </div>
                     <group>
                         <group>
                             <field name="scheduled_date" readonly="1"/>

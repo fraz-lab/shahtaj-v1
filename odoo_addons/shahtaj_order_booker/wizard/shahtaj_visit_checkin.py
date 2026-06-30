@@ -53,19 +53,12 @@ class ShahtajVisitCheckinWizard(models.TransientModel):
         self.ensure_one()
         if not self.visit_task_id:
             raise UserError(_('No visit task selected.'))
-        visit = self.env['shahtaj.visit'].create_from_task_checkin(
+        result = self.env['shahtaj.visit'].create_from_task_checkin(
             self.visit_task_id,
             self.booker_latitude,
             self.booker_longitude,
         )
-        return {
-            'type': 'ir.actions.act_window',
-            'name': _('Shop Visit'),
-            'res_model': 'shahtaj.visit',
-            'res_id': visit.id,
-            'view_mode': 'form',
-            'target': 'current',
-            'views': [
-                (self.env.ref('shahtaj_order_booker.view_shahtaj_visit_form_booker').id, 'form'),
-            ],
-        }
+        if isinstance(result, dict):
+            return result
+        visit = result
+        return visit.action_open_booker_form()

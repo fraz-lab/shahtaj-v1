@@ -87,6 +87,21 @@ class ShahtajVisitTask(models.Model):
         readonly=True,
         copy=False,
     )
+    shahtaj_has_active_visit_elsewhere = fields.Boolean(
+        string='Active Visit Elsewhere',
+        compute='_compute_shahtaj_has_active_visit_elsewhere',
+    )
+
+    @api.depends('visit_id', 'state')
+    @api.depends_context('uid')
+    def _compute_shahtaj_has_active_visit_elsewhere(self):
+        active = self.env['shahtaj.visit']._get_active_visit_for_user()
+        for task in self:
+            task.shahtaj_has_active_visit_elsewhere = bool(
+                active
+                and (not task.visit_id or active.visit_task_id != task)
+                and active.state == 'in_progress'
+            )
     visit_duration_minutes = fields.Float(
         related='visit_id.duration_minutes',
         string='Visit Time (min)',
@@ -137,6 +152,11 @@ class ShahtajVisitTask(models.Model):
                 'You cannot visit until the distributor approves it.',
                 shop=self.shop_id.name,
             ))
+        active = self.env['shahtaj.visit']._get_active_visit_for_user()
+        if active:
+            if active.visit_task_id == self:
+                return self.action_open_visit()
+            return active.action_open_booker_form()
         if self.visit_id and self.visit_id.state == 'in_progress':
             return self.action_open_visit()
         return {
@@ -165,6 +185,15 @@ class ShahtajVisitTask(models.Model):
                 (self.env.ref('shahtaj_order_booker.view_shahtaj_visit_form_booker').id, 'form'),
             ],
         }
+
+    def action_open_active_visit_from_task(self):
+        """Jump to another in-progress visit when this task has not started yet."""
+        active = self.env['shahtaj.visit']._get_active_visit_for_user()
+        if not active:
+            raise UserError(_(
+                'You do not have an active shop visit. Tap "I\'m at Shop" to start one.'
+            ))
+        return active.action_open_booker_form()
 
     def action_complete(self):
         self.write({'state': 'completed'})
@@ -244,7 +273,12 @@ class ShahtajVisitTask(models.Model):
                         ('order_booker_id', '=', schedule.order_booker_id.id),
                     ], limit=1)
                     if existing:
-                        skipped += 1
+                        if existing.state == 'cancelled':
+                            existing.with_context(
+                                shahtaj_system_visit_write=True,
+                            ).write({'state': 'pending'})
+                        else:
+                            skipped += 1
                         continue
                     created |= self.create({
                         'order_booker_id': schedule.order_booker_id.id,

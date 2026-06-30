@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!--
+        Applied on every module upgrade (noupdate=0, loaded last in __manifest__.py).
+        Replaces scattered partner_access_*_fix.xml files that failed to update
+        databases where shahtaj_partner_access.xml was installed with noupdate=1.
+    -->
+    <data noupdate="0">
+        <delete model="ir.rule" id="rule_shahtaj_distributor_shops"/>
 
-    <data noupdate="1">
-
-        <!-- Distributor: read shops, staff, company partner, and accounting customers -->
         <record id="rule_shahtaj_distributor_partner_read" model="ir.rule">
             <field name="name">Distributor: read shops and staff contacts</field>
             <field name="model_id" ref="base.model_res_partner"/>
@@ -23,7 +27,5 @@
             <field name="perm_create" eval="False"/>
             <field name="perm_unlink" eval="False"/>
         </record>
-
     </data>
-
 </odoo>

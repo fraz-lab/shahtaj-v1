@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- search_default_partner_id: 1 made the UI read res.partner(1) and crash for distributors. -->
+    <data noupdate="0">
+        <record id="action_shahtaj_customer_payments" model="ir.actions.act_window">
+            <field name="context">{
+                'default_payment_type': 'inbound',
+                'default_partner_type': 'customer',
+                'search_default_inbound_filter': 1,
+                'default_move_journal_types': ('bank', 'cash'),
+                'display_account_trust': True,
+            }</field>
+        </record>
+    </data>
+</odoo>

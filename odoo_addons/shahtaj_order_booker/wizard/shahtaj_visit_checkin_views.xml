@@ -13,12 +13,14 @@
                     <field name="shop_longitude" readonly="1"/>
                 </group>
                 <group string="Your GPS Location">
-                    <field name="booker_latitude" required="1"/>
-                    <field name="booker_longitude" required="1"/>
+                    <field name="booker_latitude" required="1"
+                           placeholder="e.g. 31.5204"/>
+                    <field name="booker_longitude" required="1"
+                           placeholder="e.g. 74.3587"/>
                 </group>
                 <div class="alert alert-info" role="alert">
                     You must be within 100 m of the shop to start the visit timer.
-                    For testing on desktop, use the shop coordinates shown above.
+                    For testing on desktop, copy the shop coordinates shown above.
                 </div>
                 <footer>
                     <button name="action_check_in" type="object" string="I'm at Shop"

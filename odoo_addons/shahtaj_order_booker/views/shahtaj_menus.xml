@@ -63,11 +63,47 @@
               sequence="39"
               groups="shahtaj_order_booker.group_shahtaj_distributor"/>
 
+    <!-- Order booker only (not distributor) — My Tasks Today opens first in the app -->
+    <menuitem id="menu_shahtaj_visit_task_today"
+              name="My Tasks Today"
+              parent="menu_shahtaj_root"
+              action="action_shahtaj_visit_task_today"
+              sequence="20"
+              groups="shahtaj_order_booker.group_shahtaj_order_booker"/>
+
+    <menuitem id="menu_shahtaj_my_weekly_schedule"
+              name="My Weekly Schedule"
+              parent="menu_shahtaj_root"
+              action="action_shahtaj_my_weekly_schedule"
+              sequence="21"
+              groups="shahtaj_order_booker.group_shahtaj_order_booker"/>
+
+    <menuitem id="menu_shahtaj_shop_register"
+              name="My Registered Shops"
+              parent="menu_shahtaj_root"
+              action="action_shahtaj_shop_register"
+              sequence="22"
+              groups="shahtaj_order_booker.group_shahtaj_order_booker"/>
+
     <menuitem id="menu_shahtaj_my_visits"
               name="My Shop Visits"
               parent="menu_shahtaj_root"
               action="action_shahtaj_my_visits"
-              sequence="29"
+              sequence="23"
+              groups="shahtaj_order_booker.group_shahtaj_order_booker"/>
+
+    <menuitem id="menu_shahtaj_visit_target_my"
+              name="My Targets"
+              parent="menu_shahtaj_root"
+              action="action_shahtaj_visit_target_my"
+              sequence="24"
+              groups="shahtaj_order_booker.group_shahtaj_order_booker"/>
+
+    <menuitem id="menu_shahtaj_active_visit"
+              name="Active Visit"
+              parent="menu_shahtaj_root"
+              action="action_shahtaj_active_visit"
+              sequence="25"
               groups="shahtaj_order_booker.group_shahtaj_order_booker"/>
 
     <menuitem id="menu_shahtaj_visit_target"
@@ -84,33 +120,11 @@
               sequence="40"
               groups="shahtaj_order_booker.group_shahtaj_distributor"/>
 
-    <!-- Order booker only (not distributor) -->
-    <menuitem id="menu_shahtaj_shop_register"
-              name="Register Shop"
+    <menuitem id="menu_shahtaj_accounting"
+              name="7. Shop Accounting"
               parent="menu_shahtaj_root"
-              action="action_shahtaj_shop_register"
-              sequence="25"
-              groups="shahtaj_order_booker.group_shahtaj_order_booker"/>
-
-    <menuitem id="menu_shahtaj_my_weekly_schedule"
-              name="My Weekly Schedule"
-              parent="menu_shahtaj_root"
-              action="action_shahtaj_my_weekly_schedule"
-              sequence="26"
-              groups="shahtaj_order_booker.group_shahtaj_order_booker"/>
-
-    <menuitem id="menu_shahtaj_visit_task_today"
-              name="My Tasks Today"
-              parent="menu_shahtaj_root"
-              action="action_shahtaj_visit_task_today"
-              sequence="27"
-              groups="shahtaj_order_booker.group_shahtaj_order_booker"/>
-
-    <menuitem id="menu_shahtaj_visit_target_my"
-              name="My Targets"
-              parent="menu_shahtaj_root"
-              action="action_shahtaj_visit_target_my"
-              sequence="28"
-              groups="shahtaj_order_booker.group_shahtaj_order_booker"/>
+              action="action_shahtaj_accounting_hub"
+              sequence="42"
+              groups="shahtaj_order_booker.group_shahtaj_distributor"/>
 
 </odoo>

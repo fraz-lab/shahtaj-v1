@@ -370,6 +370,39 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 .log-entry.ok .log-time { color: #86efac; }
 .log-entry.err .log-time { color: #fca5a5; }
 
+.purpose-tag {
+  color: #fde68a;
+  font-weight: 600;
+}
+
+.api-index-list {
+  margin: 0.5rem 0 0;
+  padding-left: 1.25rem;
+  font-size: 0.88rem;
+}
+
+.api-index-list li {
+  margin-bottom: 0.45rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.api-purpose {
+  min-width: 9rem;
+  color: var(--primary-dark);
+  font-weight: 600;
+}
+
+.api-path {
+  font-size: 0.78rem;
+}
+
+.history-filters {
+  margin-bottom: 0.75rem;
+}
+
 @media (max-width: 640px) {
   .grid-2 { grid-template-columns: 1fr; }
   .tabs { overflow-x: auto; flex-wrap: nowrap; }

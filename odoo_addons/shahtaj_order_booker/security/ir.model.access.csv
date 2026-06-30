@@ -30,3 +30,4 @@ access_sale_order_shahtaj_order_booker,sale.order.shahtaj.order.booker,sale.mode
 access_sale_order_line_shahtaj_order_booker,sale.order.line.shahtaj.order.booker,sale.model_sale_order_line,group_shahtaj_order_booker,1,0,0,0
 access_shahtaj_quick_add_product_wizard,shahtaj.quick.add.product.wizard,model_shahtaj_quick_add_product_wizard,group_shahtaj_distributor,1,1,1,1
 access_shahtaj_add_stock_wizard,shahtaj.add.stock.wizard,model_shahtaj_add_stock_wizard,group_shahtaj_distributor,1,1,1,1
+access_shahtaj_accounting_hub_distributor,shahtaj.accounting.hub.distributor,model_shahtaj_accounting_hub,group_shahtaj_distributor,1,1,1,1

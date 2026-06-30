@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """Order booker API — shop visits and cart lines."""
-from odoo import _, http
+from datetime import datetime, time
+
+from odoo import _, fields, http
 from odoo.exceptions import UserError
 from odoo.http import request
 
@@ -15,13 +17,36 @@ from odoo.addons.shahtaj_order_booker.controllers.api.base import (
 
 class ShahtajApiVisits(http.Controller):
 
+    def _parse_visit_history_date(self, value, end_of_day=False):
+        """Parse YYYY-MM-DD for visits/mine date filters."""
+        if not value:
+            return None
+        try:
+            day = fields.Date.to_date(value)
+        except (TypeError, ValueError):
+            raise UserError(_('Dates must use YYYY-MM-DD format.'))
+        if end_of_day:
+            return datetime.combine(day, time.max)
+        return datetime.combine(day, time.min)
+
     @http.route('/api/shahtaj/v1/visits/mine', **API_ROUTE)
-    def my_visits(self, limit=50, **kwargs):
+    def my_visits(self, limit=50, offset=0, date_from=None, date_to=None, **kwargs):
         ensure_order_booker()
-        visits = request.env['shahtaj.visit'].search([
-            ('order_booker_id', '=', request.env.user.id),
-        ], order='started_at desc', limit=min(int(limit or 50), 100))
+        limit = min(int(limit or 50), 100)
+        offset = max(int(offset or 0), 0)
+        domain = [('order_booker_id', '=', request.env.user.id)]
+        start_dt = self._parse_visit_history_date(date_from)
+        end_dt = self._parse_visit_history_date(date_to, end_of_day=True)
+        if start_dt:
+            domain.append(('started_at', '>=', start_dt))
+        if end_dt:
+            domain.append(('started_at', '<=', end_dt))
+        Visit = request.env['shahtaj.visit']
+        visits = Visit.search(domain, order='started_at desc', limit=limit, offset=offset)
         return api_success({
+            'total': Visit.search_count(domain),
+            'offset': offset,
+            'limit': limit,
             'visits': [
                 serializers.visit_dict(visit, include_lines=False)
                 for visit in visits
@@ -106,8 +131,16 @@ class ShahtajApiVisits(http.Controller):
         return api_success({'visit': serializers.visit_dict(visit)})
 
     @http.route('/api/shahtaj/v1/visits/end-without-order', **API_ROUTE)
-    def end_without_order(self, visit_id=None, **kwargs):
+    def end_without_order(self, visit_id=None, notes=None, **kwargs):
         visit = visit_for_booker(visit_id)
+        if visit.state != 'in_progress':
+            raise UserError(_('This visit is not in progress.'))
+        reason = (notes or '').strip()
+        if not reason:
+            raise UserError(_(
+                'Please provide a reason (notes) before ending without an order.'
+            ))
+        visit.write({'notes': reason})
         visit.action_end_without_order()
         return api_success({'visit': serializers.visit_dict(visit)})
 

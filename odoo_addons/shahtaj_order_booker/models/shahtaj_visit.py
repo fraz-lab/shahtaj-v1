@@ -52,11 +52,22 @@ class ShahtajVisit(models.Model):
         required=True,
         ondelete='restrict',
     )
+    shop_name = fields.Char(
+        string='Shop Name',
+        readonly=True,
+        index=True,
+        help='Copied at check-in so bookers can read visit history without shop ACL.',
+    )
     route_id = fields.Many2one(
         'shahtaj.route',
         string='Route',
         required=True,
         ondelete='restrict',
+    )
+    route_name = fields.Char(
+        string='Route Name',
+        readonly=True,
+        help='Copied at check-in for visit history display.',
     )
     state = fields.Selection(
         VISIT_STATES,
@@ -122,13 +133,56 @@ class ShahtajVisit(models.Model):
         'This visit task already has a shop visit record.',
     )
 
-    @api.depends('shop_id', 'started_at', 'order_booker_id')
+    @api.depends('shop_name', 'shop_id', 'started_at', 'order_booker_id')
     def _compute_name(self):
         for visit in self:
-            shop = visit.shop_id.name or '?'
+            shop = visit.shop_name or visit.sudo().shop_id.name or '?'
             booker = visit.order_booker_id.name or '?'
             when = fields.Datetime.to_string(visit.started_at) if visit.started_at else ''
             visit.name = f'{shop} — {booker} — {when}'
+
+    @api.model
+    def _snapshot_visit_labels(self, shop, route):
+        """Store shop/route names on the visit for booker history screens."""
+        return {
+            'shop_name': shop.sudo().name or shop.display_name,
+            'route_name': route.sudo().name if route else '',
+        }
+
+    @api.model
+    def action_open_my_visits(self):
+        """History list for order bookers (read-only, no order entry)."""
+        list_view = self.env.ref(
+            'shahtaj_order_booker.view_shahtaj_visit_list_booker',
+            raise_if_not_found=False,
+        )
+        form_view = self.env.ref(
+            'shahtaj_order_booker.view_shahtaj_visit_form_booker_history',
+            raise_if_not_found=False,
+        )
+        search_view = self.env.ref(
+            'shahtaj_order_booker.view_shahtaj_visit_search_booker',
+            raise_if_not_found=False,
+        )
+        views = []
+        if list_view:
+            views.append((list_view.id, 'list'))
+        if form_view:
+            views.append((form_view.id, 'form'))
+        action = {
+            'type': 'ir.actions.act_window',
+            'name': _('My Shop Visits'),
+            'res_model': 'shahtaj.visit',
+            'view_mode': 'list,form',
+            'domain': [('order_booker_id', '=', self.env.uid)],
+            'context': {'create': False},
+            'target': 'current',
+        }
+        if views:
+            action['views'] = views
+        if search_view:
+            action['search_view_id'] = search_view.id
+        return action
 
     @api.depends('duration_seconds', 'started_at', 'state')
     def _compute_duration_minutes(self):
@@ -168,6 +222,33 @@ class ShahtajVisit(models.Model):
             ('order_booker_id', '=', user.id),
             ('state', '=', 'in_progress'),
         ], limit=1)
+
+    def action_open_booker_form(self):
+        """Open the order-booker visit form (continue active or review completed)."""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Active Shop Visit'),
+            'res_model': 'shahtaj.visit',
+            'res_id': self.id,
+            'view_mode': 'form',
+            'target': 'current',
+            'views': [
+                (self.env.ref(
+                    'shahtaj_order_booker.view_shahtaj_visit_form_booker'
+                ).id, 'form'),
+            ],
+        }
+
+    @api.model
+    def action_open_my_active_visit(self):
+        """Menu action: jump to the booker's in-progress visit, if any."""
+        active = self._get_active_visit_for_user()
+        if active:
+            return active.action_open_booker_form()
+        return self.env['ir.actions.act_window']._for_xml_id(
+            'shahtaj_order_booker.action_shahtaj_visit_task_today',
+        )
 
     @api.model
     def _validate_check_in_coordinates(self, shop, latitude, longitude):
@@ -219,8 +300,11 @@ class ShahtajVisit(models.Model):
             raise UserError(_('This task already has a completed visit.'))
         active = self._get_active_visit_for_user(task.order_booker_id)
         if active:
+            if active.visit_task_id == task:
+                return active
             raise UserError(_(
-                'Finish your current visit at "%(shop)s" before starting another.',
+                'You have an active visit at "%(shop)s". '
+                'Finish that visit before checking in here.',
                 shop=active.shop_id.name,
             ))
         distance = self._validate_check_in_coordinates(task.shop_id, latitude, longitude)
@@ -230,6 +314,7 @@ class ShahtajVisit(models.Model):
             'order_booker_id': task.order_booker_id.id,
             'shop_id': task.shop_id.id,
             'route_id': task.route_id.id,
+            **self._snapshot_visit_labels(task.shop_id, task.route_id),
             'started_at': now,
             'check_in_latitude': latitude,
             'check_in_longitude': longitude,
@@ -405,6 +490,11 @@ class ShahtajVisitLine(models.Model):
         required=True,
         domain=[('sale_ok', '=', True)],
     )
+    product_name = fields.Char(
+        string='Product',
+        readonly=True,
+        help='Copied when the line is saved for visit history display.',
+    )
     shahtaj_qty_bookable = fields.Float(
         string='Available to Book',
         compute='_compute_shahtaj_qty_bookable',
@@ -456,6 +546,21 @@ class ShahtajVisitLine(models.Model):
     def _onchange_product_id(self):
         if self.product_id:
             self.price_unit = self.product_id.lst_price
+            self.product_name = self.product_id.display_name
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get('product_id') and not vals.get('product_name'):
+                product = self.env['product.product'].browse(vals['product_id'])
+                vals['product_name'] = product.display_name
+        return super().create(vals_list)
+
+    def write(self, vals):
+        if vals.get('product_id') and not vals.get('product_name'):
+            product = self.env['product.product'].browse(vals['product_id'])
+            vals['product_name'] = product.display_name
+        return super().write(vals)
 
     @api.constrains('product_uom_qty', 'product_id', 'visit_id')
     def _check_bookable_quantity(self):

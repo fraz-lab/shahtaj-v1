@@ -23,6 +23,28 @@ _SHAHTAJ_CREDIT_GROUPS = (
 class ResPartner(models.Model):
     _inherit = 'res.partner'
 
+    def _check_access(self, operation):
+        """Let distributors read company partners required by accounting screens."""
+        result = super()._check_access(operation)
+        if (
+            result is not None
+            and operation == 'read'
+            and not self.env.su
+            and self.env.user.has_group(
+                'shahtaj_order_booker.group_shahtaj_distributor',
+            )
+        ):
+            forbidden, make_error = result
+            allowed_company_partners = (
+                self.env.user.company_ids.partner_id
+                | self.env.company.partner_id
+            )
+            forbidden = forbidden - allowed_company_partners
+            if not forbidden:
+                return None
+            return forbidden, make_error
+        return result
+
     # --- Shop identity and territory (one shop → one route) ---
     credit_limit = fields.Float(groups=_SHAHTAJ_CREDIT_GROUPS)
     use_partner_credit_limit = fields.Boolean(groups=_SHAHTAJ_CREDIT_GROUPS)
@@ -187,7 +209,15 @@ class ResPartner(models.Model):
             vals.setdefault('customer_rank', 1)
             if vals.get('owner_phone'):
                 vals.setdefault('phone', vals['owner_phone'])
-            if self.env.context.get('shahtaj_shop_register'):
+            if self.env.context.get('shahtaj_shop_register') or (
+                vals.get('shop_approval_state') == 'pending'
+                and self.env.user.has_group(
+                    'shahtaj_order_booker.group_shahtaj_order_booker',
+                )
+                and not self.env.user.has_group(
+                    'shahtaj_order_booker.group_shahtaj_distributor',
+                )
+            ):
                 vals.setdefault('shop_approval_state', 'pending')
                 vals.setdefault('registered_by_id', self.env.user.id)
             elif self.env.context.get('default_shop_approval_state'):
@@ -324,11 +354,30 @@ class ResPartner(models.Model):
                 Task._cancel_pending_tasks_for_unapproved_shops()
                 continue
             bookers = partner.route_id.mapped('weekly_schedule_ids.order_booker_id')
+            partner._reactivate_cancelled_visit_tasks(bookers=bookers)
             if bookers:
                 for booker in bookers:
                     Task._auto_generate_window(order_booker=booker)
             else:
                 Task._auto_generate_window()
+
+    def _reactivate_cancelled_visit_tasks(self, bookers=None):
+        """Restore cancelled tasks after a shop is approved again."""
+        self.ensure_one()
+        if self.shop_approval_state != 'approved':
+            return
+        Task = self.env['shahtaj.visit.task']
+        domain = [
+            ('shop_id', '=', self.id),
+            ('state', '=', 'cancelled'),
+        ]
+        if bookers:
+            domain.append(('order_booker_id', 'in', bookers.ids))
+        cancelled = Task.search(domain)
+        if cancelled:
+            cancelled.with_context(shahtaj_system_visit_write=True).write({
+                'state': 'pending',
+            })
 
     def action_approve_shop(self):
         """Distributor approves a pending shop; posts legacy balance if set."""

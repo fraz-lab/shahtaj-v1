@@ -5,6 +5,7 @@
   const ENDPOINT_CATALOG = [
     {
       path: '/api/shahtaj/v1/auth/login',
+      purpose: 'Get API key',
       auth: false,
       params: [
         { name: 'database', required: true, type: 'string' },
@@ -14,16 +15,19 @@
     },
     {
       path: '/api/shahtaj/v1/auth/me',
+      purpose: 'Validate session',
       auth: true,
       params: [],
     },
     {
       path: '/api/shahtaj/v1/tasks/today',
+      purpose: 'List today tasks',
       auth: true,
       params: [],
     },
     {
       path: '/api/shahtaj/v1/tasks/check-in',
+      purpose: 'GPS start visit',
       auth: true,
       params: [
         { name: 'task_id', required: true, type: 'int' },
@@ -33,11 +37,13 @@
     },
     {
       path: '/api/shahtaj/v1/tasks/skip',
+      purpose: 'Skip shop visit',
       auth: true,
       params: [{ name: 'task_id', required: true, type: 'int' }],
     },
     {
       path: '/api/shahtaj/v1/tasks/notes',
+      purpose: 'Save task notes',
       auth: true,
       params: [
         { name: 'task_id', required: true, type: 'int' },
@@ -46,21 +52,30 @@
     },
     {
       path: '/api/shahtaj/v1/visits/active',
+      purpose: 'Resume open visit',
       auth: true,
       params: [],
     },
     {
       path: '/api/shahtaj/v1/visits/mine',
+      purpose: 'Past visits list',
       auth: true,
-      params: [{ name: 'limit', required: false, type: 'int', default: '50' }],
+      params: [
+        { name: 'limit', required: false, type: 'int', default: '50' },
+        { name: 'offset', required: false, type: 'int', default: '0' },
+        { name: 'date_from', required: false, type: 'string', note: 'YYYY-MM-DD' },
+        { name: 'date_to', required: false, type: 'string', note: 'YYYY-MM-DD' },
+      ],
     },
     {
       path: '/api/shahtaj/v1/visits/get',
+      purpose: 'Visit full detail',
       auth: true,
       params: [{ name: 'visit_id', required: true, type: 'int' }],
     },
     {
       path: '/api/shahtaj/v1/visits/line/add',
+      purpose: 'Add cart product',
       auth: true,
       params: [
         { name: 'visit_id', required: true, type: 'int' },
@@ -70,6 +85,7 @@
     },
     {
       path: '/api/shahtaj/v1/visits/line/update',
+      purpose: 'Update cart line',
       auth: true,
       params: [
         { name: 'line_id', required: true, type: 'int' },
@@ -79,21 +95,28 @@
     },
     {
       path: '/api/shahtaj/v1/visits/line/remove',
+      purpose: 'Remove cart line',
       auth: true,
       params: [{ name: 'line_id', required: true, type: 'int' }],
     },
     {
       path: '/api/shahtaj/v1/visits/place-order',
+      purpose: 'Submit sales order',
       auth: true,
       params: [{ name: 'visit_id', required: true, type: 'int' }],
     },
     {
       path: '/api/shahtaj/v1/visits/end-without-order',
+      purpose: 'Close empty visit',
       auth: true,
-      params: [{ name: 'visit_id', required: true, type: 'int' }],
+      params: [
+        { name: 'visit_id', required: true, type: 'int' },
+        { name: 'notes', required: true, type: 'string', note: 'Reason required' },
+      ],
     },
     {
       path: '/api/shahtaj/v1/visits/notes',
+      purpose: 'Save visit notes',
       auth: true,
       params: [
         { name: 'visit_id', required: true, type: 'int' },
@@ -102,6 +125,7 @@
     },
     {
       path: '/api/shahtaj/v1/products/list',
+      purpose: 'List sellable products',
       auth: true,
       params: [
         { name: 'visit_id', required: false, type: 'int', note: 'Adjusts qty_bookable for active visit cart' },
@@ -111,16 +135,19 @@
     },
     {
       path: '/api/shahtaj/v1/schedule/weekly',
+      purpose: 'Weekly route plan',
       auth: true,
       params: [],
     },
     {
       path: '/api/shahtaj/v1/targets/mine',
+      purpose: 'List sales targets',
       auth: true,
       params: [],
     },
     {
       path: '/api/shahtaj/v1/shops/register',
+      purpose: 'Register new shop',
       auth: true,
       params: [
         { name: 'name', required: true, type: 'string' },
@@ -140,11 +167,13 @@
     },
     {
       path: '/api/shahtaj/v1/shops/mine',
+      purpose: 'My registered shops',
       auth: true,
       params: [],
     },
     {
       path: '/api/shahtaj/v1/shops/get',
+      purpose: 'Shop registration detail',
       auth: true,
       params: [
         { name: 'shop_id', required: true, type: 'int' },
@@ -194,6 +223,9 @@
     wrap.className = `log-entry ${result.kind}`;
 
     let html = `<div class="log-time">[${time}] POST ${path}</div>`;
+    if (catalog && catalog.purpose) {
+      html += `<div class="log-meta purpose-tag">${escapeHtml(catalog.purpose)}</div>`;
+    }
     html += `<div class="log-meta">Auth: ${path.includes('/auth/login') ? 'none (login)' : 'Bearer token'}</div>`;
 
     if (catalog && catalog.params.length) {
@@ -201,7 +233,8 @@
       catalog.params.forEach((p) => {
         const req = p.required ? 'required' : 'optional';
         const def = p.default ? `, default ${p.default}` : '';
-        html += `<li><code>${p.name}</code> <span class="muted">(${req}, ${p.type}${def})</span></li>`;
+        const note = p.note ? ` — ${p.note}` : '';
+        html += `<li><code>${p.name}</code> <span class="muted">(${req}, ${p.type}${def})${note}</span></li>`;
       });
       html += '</ul>';
     } else if (catalog) {
@@ -225,20 +258,38 @@
       .replace(/>/g, '&gt;');
   }
 
+  function renderApiQuickIndex() {
+    const el = $('api-quick-index');
+    if (!el) return;
+    let html = '<h3>API index <span class="muted">(three-word purpose)</span></h3>';
+    html += '<ol class="api-index-list">';
+    ENDPOINT_CATALOG.forEach((ep) => {
+      html += `<li>
+        <span class="api-purpose">${escapeHtml(ep.purpose)}</span>
+        <code class="api-path">${ep.path}</code>
+        <span class="muted">${ep.auth ? 'Bearer' : 'login'}</span>
+      </li>`;
+    });
+    html += '</ol>';
+    el.innerHTML = html;
+  }
+
   function renderEndpointReference() {
     const el = $('endpoint-reference');
     let html = '<h3>Endpoint reference (all POST, JSON body)</h3>';
-    html += '<p class="hint">Every call except <code>auth/login</code> needs <code>Authorization: Bearer &lt;api_key&gt;</code>.</p>';
-    html += '<table class="ref-table"><thead><tr><th>Endpoint</th><th>Auth</th><th>Body params</th></tr></thead><tbody>';
+    html += '<p class="hint">Success envelope: <code>{ "ok": true, "data": { ... } }</code>. Every call except <code>auth/login</code> needs <code>Authorization: Bearer &lt;api_key&gt;</code>.</p>';
+    html += '<table class="ref-table"><thead><tr><th>Purpose</th><th>Endpoint</th><th>Auth</th><th>Body params</th></tr></thead><tbody>';
     ENDPOINT_CATALOG.forEach((ep) => {
       const params = ep.params.length
         ? ep.params.map((p) => {
             const mark = p.required ? '*' : '';
             const def = p.default ? ` = ${p.default}` : '';
-            return `<code>${p.name}${mark}</code> (${p.type}${def})`;
+            const note = p.note ? ` — ${p.note}` : '';
+            return `<code>${p.name}${mark}</code> (${p.type}${def})${note}`;
           }).join('<br/>')
         : '<span class="muted">{} empty</span>';
       html += `<tr>
+        <td><strong>${escapeHtml(ep.purpose)}</strong></td>
         <td><code>${ep.path}</code></td>
         <td>${ep.auth ? 'Bearer' : '—'}</td>
         <td>${params}</td>
@@ -275,8 +326,8 @@
   }
 
   function showLogin() {
-    $('screen-login').classList.remove('hidden');
     $('screen-app').classList.add('hidden');
+    $('screen-login').classList.remove('hidden');
     $('header-user').classList.add('hidden');
   }
 
@@ -360,392 +411,16 @@
     if (btn) btn.click();
   }
 
-  /* ── Tasks ── */
-  async function loadTasks() {
-    const data = await api('/api/shahtaj/v1/tasks/today');
-    state.tasks = data.tasks || [];
-    $('tasks-date').textContent = `Date: ${data.date} · ${state.tasks.length} task(s)`;
-    renderTaskCards();
-    return data;
+  function alertErr(e) {
+    alert(e.message || String(e));
   }
 
-  function renderTaskCards() {
-    const container = $('task-cards');
-    container.innerHTML = '';
-    if (!state.tasks.length) {
-      container.innerHTML = '<p class="hint">No tasks for today. Ask distributor to set weekly schedule.</p>';
-      return;
-    }
-    state.tasks.forEach((task) => {
-      const card = document.createElement('div');
-      card.className = 'task-card' + (
-        state.selectedTask && state.selectedTask.id === task.id ? ' selected' : ''
-      );
-      const shop = task.shop || {};
-      const duration = task.visit_duration_minutes
-        ? `${task.visit_duration_minutes} min`
-        : '';
-      card.innerHTML = `
-        <span class="badge ${task.state}">${task.state.replace('_', ' ')}</span>
-        <h4>${shop.name || 'Shop'}</h4>
-        <p class="hint">${task.route ? task.route.name : ''} · ${task.zone ? task.zone.name : ''}</p>
-        ${shop.latitude ? `<p class="hint">GPS: ${shop.latitude}, ${shop.longitude}</p>` : ''}
-        ${duration ? `<p class="hint">Visit: ${duration}</p>` : ''}
-        ${task.visit_id ? '<p class="hint">Has active/completed visit</p>' : ''}
-      `;
-      card.onclick = () => selectTask(task);
-      container.appendChild(card);
-    });
-  }
-
-  function selectTask(task) {
-    state.selectedTask = task;
-    renderTaskCards();
-    const shop = task.shop || {};
-    $('checkin-panel').classList.remove('hidden');
-    $('selected-task-label').textContent = `Selected: ${shop.name || 'Shop'} (task #${task.id})`;
-    $('shop-gps-box').textContent = shop.latitude
-      ? `Shop GPS: ${shop.latitude}, ${shop.longitude} — must be within 100 m to check in`
-      : 'Shop has no GPS — ask distributor.';
-    if (shop.latitude) {
-      $('inp-lat').value = shop.latitude;
-      $('inp-lng').value = shop.longitude;
-    }
-    $('inp-task-notes').value = task.notes || '';
-
-    const canAct = !['completed', 'cancelled', 'skipped'].includes(task.state);
-    const hasVisit = !!task.visit_id;
-    $('btn-checkin').classList.toggle('hidden', !canAct || hasVisit);
-    $('btn-continue-visit').classList.toggle('hidden', !canAct || !hasVisit);
-    $('btn-skip-task').classList.toggle('hidden', !canAct || hasVisit);
-    $('btn-checkin').disabled = task.state === 'completed';
-  }
-
-  /* ── Visit ── */
-  async function loadActiveVisit() {
-    const data = await api('/api/shahtaj/v1/visits/active');
-    state.visit = data.visit;
-    renderVisit();
-    return data;
-  }
-
-  function renderVisit() {
-    const visit = state.visit;
-    $('visit-completed').classList.add('hidden');
-
-    if (!visit || visit.state !== 'in_progress') {
-      $('visit-empty').classList.remove('hidden');
-      $('visit-content').classList.add('hidden');
-      if (state.lastCompletedVisit) {
-        showCompletedVisit(state.lastCompletedVisit);
-      }
-      return;
-    }
-
-    $('visit-empty').classList.add('hidden');
-    $('visit-content').classList.remove('hidden');
-
-    const shop = visit.shop || {};
-    $('visit-summary').innerHTML = `
-      <dl>
-        <dt>Shop</dt><dd>${shop.name || '—'}</dd>
-        <dt>Status</dt><dd>${visit.state} / ${visit.outcome}</dd>
-        <dt>Started</dt><dd>${visit.started_at || '—'}</dd>
-        <dt>Elapsed</dt><dd>${visit.duration_minutes != null ? visit.duration_minutes + ' min' : '—'}</dd>
-        <dt>Check-in distance</dt><dd>${visit.check_in_distance_m != null ? visit.check_in_distance_m + ' m' : '—'}</dd>
-        <dt>Visit ID</dt><dd>${visit.id}</dd>
-      </dl>
-    `;
-    $('inp-visit-notes').value = visit.notes || '';
-
-    const tbody = $('visit-lines-table').querySelector('tbody');
-    tbody.innerHTML = '';
-    (visit.lines || []).forEach((line) => {
-      const tr = document.createElement('tr');
-      const prod = line.product || {};
-      tr.innerHTML = `
-        <td>${prod.name || '?'}</td>
-        <td><input type="number" step="any" min="0.01" class="line-qty" value="${line.quantity}" style="width:5rem"/></td>
-        <td><input type="number" step="any" min="0" class="line-price" value="${line.price_unit}" style="width:6rem"/></td>
-        <td>${line.subtotal}</td>
-        <td class="line-actions">
-          <button class="secondary sm btn-update-line">Update</button>
-          <button class="ghost sm btn-remove-line">Remove</button>
-        </td>
-      `;
-      tr.querySelector('.btn-update-line').onclick = async (e) => {
-        e.stopPropagation();
-        try {
-          await api('/api/shahtaj/v1/visits/line/update', {
-            line_id: line.id,
-            quantity: parseFloat(tr.querySelector('.line-qty').value),
-            price_unit: parseFloat(tr.querySelector('.line-price').value),
-          });
-          await loadActiveVisit();
-        } catch (err) {
-          alert(err.message);
-        }
-      };
-      tr.querySelector('.btn-remove-line').onclick = async (e) => {
-        e.stopPropagation();
-        try {
-          await api('/api/shahtaj/v1/visits/line/remove', { line_id: line.id });
-          await loadActiveVisit();
-        } catch (err) {
-          alert(err.message);
-        }
-      };
-      tbody.appendChild(tr);
-    });
-    loadProductList().catch(() => {});
-  }
-
-  async function loadProductList() {
-    if (!state.visit || state.visit.state !== 'in_progress') {
-      state.products = [];
-      $('product-cards').innerHTML = '';
-      $('products-meta').textContent = '';
-      return null;
-    }
-    const data = await api('/api/shahtaj/v1/products/list', {
-      visit_id: state.visit.id,
-      limit: 500,
-      offset: 0,
-    });
-    state.products = data.products || [];
-    $('products-meta').textContent = `${state.products.length} of ${data.total} product(s) loaded`;
-    renderProductCards();
-    return data;
-  }
-
-  function renderProductCards() {
-    const container = $('product-cards');
-    container.innerHTML = '';
-    const filter = ($('inp-product-filter').value || '').toLowerCase().trim();
-    const addQty = parseFloat($('inp-add-qty').value) || 1;
-    const list = filter
-      ? state.products.filter((p) => p.name.toLowerCase().includes(filter))
-      : state.products;
-
-    if (!list.length) {
-      container.innerHTML = '<p class="hint">No products to show. Load the list or ask distributor to add products.</p>';
-      return;
-    }
-
-    list.forEach((p) => {
-      const card = document.createElement('div');
-      card.className = 'product-card';
-      const avail = p.qty_unlimited ? '∞' : (p.qty_bookable ?? '?');
-      const outOfStock = !p.qty_unlimited && (p.qty_bookable === 0 || p.qty_bookable === false);
-      if (outOfStock) card.classList.add('out-of-stock');
-      card.innerHTML = `
-        <h4>${p.name}</h4>
-        <p class="hint">Rs ${p.list_price} · Avail: ${avail} ${p.uom || ''}</p>
-        <p class="hint">ID: ${p.id}</p>
-        ${outOfStock ? '<p class="hint warn">Out of stock</p>' : '<p class="hint">Tap to add</p>'}
-      `;
-      if (!outOfStock) {
-        card.onclick = async () => {
-          document.querySelectorAll('.product-card').forEach((c) => c.classList.remove('selected'));
-          card.classList.add('selected');
-          try {
-            await api('/api/shahtaj/v1/visits/line/add', {
-              visit_id: state.visit.id,
-              product_id: p.id,
-              quantity: addQty,
-            });
-            await loadActiveVisit();
-          } catch (err) {
-            alert(err.message);
-          }
-        };
-      }
-      container.appendChild(card);
-    });
-  }
-
-  function showCompletedVisit(visit) {
-    $('visit-empty').classList.add('hidden');
-    $('visit-content').classList.add('hidden');
-    $('visit-completed').classList.remove('hidden');
-    $('visit-completed-body').innerHTML = `
-      <p><strong>${visit.shop ? visit.shop.name : 'Shop'}</strong></p>
-      <p class="hint">Outcome: ${visit.outcome} · ${visit.duration_minutes || 0} min</p>
-      ${visit.sale_order_name ? `<p>Order: ${visit.sale_order_name} — Rs ${visit.order_amount}</p>` : ''}
-    `;
-  }
-
-  async function loadVisitHistory() {
-    const data = await api('/api/shahtaj/v1/visits/mine', { limit: 50 });
-    const el = $('history-list');
-    el.innerHTML = '';
-    (data.visits || []).forEach((v) => {
-      const card = document.createElement('div');
-      card.className = 'info-card';
-      card.style.cursor = 'default';
-      const shop = v.shop || {};
-      card.innerHTML = `
-        <span class="badge ${v.state}">${v.state}</span>
-        <span class="badge ${v.outcome}">${v.outcome}</span>
-        <h4>${shop.name || 'Shop'}</h4>
-        <p class="hint">${v.started_at || '—'} · ${v.duration_minutes || 0} min</p>
-        ${v.sale_order_name ? `<p class="hint">Order: ${v.sale_order_name} (Rs ${v.order_amount})</p>` : ''}
-        <button type="button" class="secondary sm btn-open-visit">Open (visits/get)</button>
-      `;
-      card.querySelector('.btn-open-visit').onclick = async () => {
-        try {
-          const detail = await api('/api/shahtaj/v1/visits/get', { visit_id: v.id });
-          alert(JSON.stringify(detail.visit, null, 2));
-        } catch (err) {
-          alert(err.message);
-        }
-      };
-      el.appendChild(card);
-    });
-    if (!data.visits.length) el.innerHTML = '<p class="hint">No visits yet.</p>';
-  }
-
-  /* ── Schedule / targets / shops ── */
-  async function loadSchedule() {
-    const data = await api('/api/shahtaj/v1/schedule/weekly');
-    const el = $('schedule-list');
-    el.innerHTML = '';
-    (data.schedules || []).forEach((s) => {
-      const card = document.createElement('div');
-      card.className = 'info-card';
-      card.style.cursor = 'default';
-      card.innerHTML = `
-        <h4>${s.day_label} — ${s.route ? s.route.name : ''}</h4>
-        <p class="hint">${s.zone ? s.zone.name : ''} · ${s.shop_count} shops</p>
-        <p class="hint">This week: ${s.week_tasks_completed}/${s.week_tasks_planned} done (${Math.round(s.week_tasks_progress || 0)}%)</p>
-      `;
-      el.appendChild(card);
-    });
-    if (!data.schedules.length) el.innerHTML = '<p class="hint">No schedule lines assigned.</p>';
-  }
-
-  async function loadTargets() {
-    const data = await api('/api/shahtaj/v1/targets/mine');
-    const el = $('targets-list');
-    el.innerHTML = '';
-    (data.targets || []).forEach((t) => {
-      const card = document.createElement('div');
-      card.className = 'info-card';
-      card.style.cursor = 'default';
-      const product = t.product ? ` · ${t.product.name}` : '';
-      card.innerHTML = `
-        <h4>${t.name}</h4>
-        <p class="hint">${t.target_type}${product}</p>
-        <p class="hint">${t.date_start} → ${t.date_end}</p>
-        <p><strong>${t.achieved_value}</strong> / ${t.target_value} (${Math.round(t.progress_percent || 0)}%)</p>
-      `;
-      el.appendChild(card);
-    });
-    if (!data.targets.length) el.innerHTML = '<p class="hint">No active targets.</p>';
-  }
-
-  function renderShopPhotos(shop) {
-    const panel = $('shop-detail-panel');
-    const grid = $('shop-detail-photos');
-    $('shop-detail-title').textContent = shop.name;
-    grid.innerHTML = '';
-    const photos = shop.photo_data || {};
-    const labels = {
-      owner_cnic_front: 'CNIC front',
-      owner_cnic_back: 'CNIC back',
-      owner_photo: 'Owner',
-      shop_exterior_photo: 'Exterior',
-    };
-    let any = false;
-    Object.entries(labels).forEach(([key, label]) => {
-      if (!photos[key]) return;
-      any = true;
-      const wrap = document.createElement('div');
-      wrap.innerHTML = `<p class="hint">${label}</p><img class="photo-preview" src="data:image/jpeg;base64,${photos[key]}" alt="${label}"/>`;
-      grid.appendChild(wrap);
-    });
-    panel.classList.toggle('hidden', !any);
-  }
-
-  async function loadMyShops() {
-    const data = await api('/api/shahtaj/v1/shops/mine');
-    const el = $('shops-list');
-    el.innerHTML = '';
-    (data.shops || []).forEach((s) => {
-      const card = document.createElement('div');
-      card.className = 'info-card';
-      card.style.cursor = 'default';
-      const photos = s.photos || {};
-      const photoCount = Object.values(photos).filter(Boolean).length;
-      card.innerHTML = `
-        <h4>${s.name}</h4>
-        <p class="hint">${s.owner_name} · ${s.owner_phone}</p>
-        <span class="badge ${s.approval_state}">${s.approval_state}</span>
-        <p class="hint">${photoCount} photo(s) on file</p>
-        <div class="shop-card-actions">
-          <button type="button" class="secondary sm btn-view-shop">View photos (shops/get)</button>
-        </div>
-      `;
-      card.querySelector('.btn-view-shop').onclick = async () => {
-        try {
-          const detail = await api('/api/shahtaj/v1/shops/get', {
-            shop_id: s.id,
-            include_photos: true,
-          });
-          renderShopPhotos(detail.shop);
-        } catch (err) {
-          alert(err.message);
-        }
-      };
-      el.appendChild(card);
-    });
-    if (!data.shops.length) el.innerHTML = '<p class="hint">No shops registered yet.</p>';
-  }
-
-  function readFileAsDataUrl(inputId) {
-    const input = $(inputId);
-    const file = input && input.files && input.files[0];
-    if (!file) return Promise.resolve(null);
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = () => reject(new Error('Could not read file'));
-      reader.readAsDataURL(file);
-    });
-  }
-
-  function setupPhotoPreviews() {
-    document.querySelectorAll('input[type="file"][data-preview]').forEach((input) => {
-      input.addEventListener('change', () => {
-        const preview = $(input.dataset.preview);
-        const file = input.files[0];
-        if (!file || !preview) return;
-        preview.src = URL.createObjectURL(file);
-        preview.classList.remove('hidden');
-      });
-    });
-  }
-
-  async function refreshMe() {
-    const data = await api('/api/shahtaj/v1/auth/me');
-    state.user = data.user;
-    state.onlineStatus = data.online_status;
-    showApp();
-  }
-
-  async function afterLogin() {
-    await refreshMe();
-    showApp();
-    await loadTasks();
-    await loadActiveVisit();
-    switchTab('tasks');
-  }
-
-  /* ── Event handlers ── */
+  /* ── Login ── */
   $('btn-login').onclick = async () => {
     const database = $('inp-database').value.trim();
     const login = $('inp-login').value.trim();
     const password = $('inp-password').value;
+    $('login-status').textContent = 'Logging in...';
     $('login-status').className = 'status';
     try {
       const data = await api('/api/shahtaj/v1/auth/login', { database, login, password });
@@ -753,9 +428,13 @@
       state.database = data.database;
       state.user = data.user;
       saveSession();
-      $('login-status').textContent = 'Login OK.';
+      const me = await api('/api/shahtaj/v1/auth/me', {});
+      state.onlineStatus = me.online_status;
+      showApp();
+      $('login-status').textContent = `Logged in as ${data.user.name}`;
       $('login-status').className = 'status ok';
-      await afterLogin();
+      await loadTasks();
+      await loadActiveVisit();
     } catch (e) {
       $('login-status').textContent = e.message;
       $('login-status').className = 'status err';
@@ -763,48 +442,72 @@
   };
 
   $('btn-logout').onclick = clearSession;
+
+  /* ── Tasks ── */
+  async function loadTasks() {
+    const data = await api('/api/shahtaj/v1/tasks/today', {});
+    state.tasks = data.tasks || [];
+    $('tasks-date').textContent = `Date: ${data.date} — ${state.tasks.length} task(s)`;
+    renderTaskCards();
+  }
+
+  function renderTaskCards() {
+    const el = $('task-cards');
+    if (!state.tasks.length) {
+      el.innerHTML = '<p class="empty-state">No tasks for today.</p>';
+      return;
+    }
+    el.innerHTML = state.tasks.map((t) => {
+      const shop = t.shop || {};
+      return `<article class="card task-card" data-task-id="${t.id}">
+        <h4>${escapeHtml(shop.name || '?')}</h4>
+        <p class="meta">${escapeHtml(t.route?.name || '')} · ${t.state}</p>
+        <p class="hint">${escapeHtml(shop.owner_phone || '')}</p>
+      </article>`;
+    }).join('');
+    el.querySelectorAll('.task-card').forEach((card) => {
+      card.onclick = () => selectTask(parseInt(card.dataset.taskId, 10));
+    });
+  }
+
+  function selectTask(taskId) {
+    state.selectedTask = state.tasks.find((t) => t.id === taskId) || null;
+    const panel = $('checkin-panel');
+    if (!state.selectedTask) {
+      panel.classList.add('hidden');
+      return;
+    }
+    panel.classList.remove('hidden');
+    const shop = state.selectedTask.shop || {};
+    $('selected-task-label').textContent =
+      `${shop.name} — ${state.selectedTask.state}`;
+    $('inp-task-notes').value = state.selectedTask.notes || '';
+    const gpsBox = $('shop-gps-box');
+    gpsBox.innerHTML = shop.latitude && shop.longitude
+      ? `Shop GPS: ${shop.latitude}, ${shop.longitude} · approval: ${shop.approval_state}`
+      : '<span class="warn">Shop has no GPS — check-in will fail.</span>';
+    const hasVisit = !!state.selectedTask.visit_id;
+    $('btn-checkin').classList.toggle('hidden', hasVisit);
+    $('btn-continue-visit').classList.toggle('hidden', !hasVisit);
+  }
+
   $('btn-refresh-tasks').onclick = () => loadTasks().catch(alertErr);
-  $('btn-refresh-visit').onclick = () => loadActiveVisit().catch(alertErr);
-  $('btn-refresh-history').onclick = () => loadVisitHistory().catch(alertErr);
-  $('btn-refresh-schedule').onclick = () => loadSchedule().catch(alertErr);
-  $('btn-refresh-targets').onclick = () => loadTargets().catch(alertErr);
-  $('btn-refresh-shops').onclick = () => loadMyShops().catch(alertErr);
-  $('btn-clear-log').onclick = () => { $('api-log').innerHTML = ''; };
 
   $('btn-use-shop-gps').onclick = () => {
-    if (!state.selectedTask || !state.selectedTask.shop) return;
-    $('inp-lat').value = state.selectedTask.shop.latitude;
-    $('inp-lng').value = state.selectedTask.shop.longitude;
+    if (!state.selectedTask?.shop) return;
+    $('inp-lat').value = state.selectedTask.shop.latitude || '';
+    $('inp-lng').value = state.selectedTask.shop.longitude || '';
   };
 
   $('btn-use-device-gps').onclick = () => {
     if (!navigator.geolocation) {
-      alert('Geolocation not supported in this browser.');
+      alert('Geolocation not available in this browser.');
       return;
     }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        $('inp-lat').value = pos.coords.latitude;
-        $('inp-lng').value = pos.coords.longitude;
-      },
-      (err) => alert('GPS error: ' + err.message),
-      { enableHighAccuracy: true }
-    );
-  };
-
-  $('btn-save-task-notes').onclick = async () => {
-    if (!state.selectedTask) return;
-    try {
-      const data = await api('/api/shahtaj/v1/tasks/notes', {
-        task_id: state.selectedTask.id,
-        notes: $('inp-task-notes').value,
-      });
-      state.selectedTask = data.task;
-      await loadTasks();
-      selectTask(data.task);
-    } catch (e) {
-      alert(e.message);
-    }
+    navigator.geolocation.getCurrentPosition((pos) => {
+      $('inp-lat').value = pos.coords.latitude;
+      $('inp-lng').value = pos.coords.longitude;
+    }, (err) => alert(err.message));
   };
 
   $('btn-checkin').onclick = async () => {
@@ -816,30 +519,24 @@
         longitude: parseFloat($('inp-lng').value),
       });
       state.visit = data.visit;
-      state.lastCompletedVisit = null;
-      await loadTasks();
-      await loadActiveVisit();
+      if (data.resumed) alert('Resumed existing visit for this task.');
       switchTab('visit');
+      renderVisit();
+      await loadTasks();
     } catch (e) {
       alert(e.message);
     }
   };
 
   $('btn-continue-visit').onclick = async () => {
-    if (!state.selectedTask || !state.selectedTask.visit_id) return;
+    if (!state.selectedTask?.visit_id) return;
     try {
       const data = await api('/api/shahtaj/v1/visits/get', {
         visit_id: state.selectedTask.visit_id,
       });
       state.visit = data.visit;
-      if (data.visit.state === 'in_progress') {
-        switchTab('visit');
-        renderVisit();
-      } else {
-        alert('Visit is already completed.');
-        await loadVisitHistory();
-        switchTab('history');
-      }
+      switchTab('visit');
+      renderVisit();
     } catch (e) {
       alert(e.message);
     }
@@ -847,20 +544,260 @@
 
   $('btn-skip-task').onclick = async () => {
     if (!state.selectedTask) return;
-    if (!confirm('Skip this task?')) return;
+    if (!confirm('Skip this task without visiting?')) return;
     try {
       await api('/api/shahtaj/v1/tasks/skip', { task_id: state.selectedTask.id });
-      state.selectedTask = null;
-      $('checkin-panel').classList.add('hidden');
       await loadTasks();
+      $('checkin-panel').classList.add('hidden');
     } catch (e) {
       alert(e.message);
     }
   };
 
-  $('btn-load-products').onclick = () => loadProductList().catch(alertErr);
-  $('inp-product-filter').oninput = () => renderProductCards();
-  $('inp-add-qty').onchange = () => renderProductCards();
+  $('btn-save-task-notes').onclick = async () => {
+    if (!state.selectedTask) return;
+    try {
+      const data = await api('/api/shahtaj/v1/tasks/notes', {
+        task_id: state.selectedTask.id,
+        notes: $('inp-task-notes').value,
+      });
+      state.selectedTask = data.task;
+      await loadTasks();
+      alert('Task notes saved.');
+    } catch (e) {
+      alert(e.message);
+    }
+  };
+
+  /* ── Visit ── */
+  async function loadActiveVisit() {
+    const data = await api('/api/shahtaj/v1/visits/active', {});
+    state.visit = data.visit;
+    renderVisit();
+  }
+
+  function renderVisit() {
+    const empty = $('visit-empty');
+    const content = $('visit-content');
+    const completed = $('visit-completed');
+    if (state.visit && state.visit.state === 'in_progress') {
+      empty.classList.add('hidden');
+      content.classList.remove('hidden');
+      completed.classList.add('hidden');
+      const v = state.visit;
+      $('visit-summary').innerHTML = `
+        <p><strong>${escapeHtml(v.shop?.name || '')}</strong> · ${v.state} · ${v.duration_minutes?.toFixed?.(1) || 0} min</p>
+        <p class="meta">Check-in distance: ${v.check_in_distance_m?.toFixed?.(0) || '?'} m</p>`;
+      $('inp-visit-notes').value = v.notes || '';
+      const tbody = $('visit-lines-table').querySelector('tbody');
+      tbody.innerHTML = (v.lines || []).map((line) => `
+        <tr>
+          <td>${escapeHtml(line.product?.name || '')}</td>
+          <td>${line.quantity}</td>
+          <td>${line.price_unit}</td>
+          <td>${line.subtotal}</td>
+          <td>
+            <button class="ghost sm" data-line-update="${line.id}">Edit qty</button>
+            <button class="ghost sm" data-line-remove="${line.id}">Remove</button>
+          </td>
+        </tr>`).join('');
+      tbody.querySelectorAll('[data-line-update]').forEach((btn) => {
+        btn.onclick = async () => {
+          const qty = prompt('New quantity:', '1');
+          if (!qty) return;
+          try {
+            const data = await api('/api/shahtaj/v1/visits/line/update', {
+              line_id: parseInt(btn.dataset.lineUpdate, 10),
+              quantity: parseFloat(qty),
+            });
+            state.visit = data.visit;
+            renderVisit();
+          } catch (e) {
+            alert(e.message);
+          }
+        };
+      });
+      tbody.querySelectorAll('[data-line-remove]').forEach((btn) => {
+        btn.onclick = async () => {
+          try {
+            const data = await api('/api/shahtaj/v1/visits/line/remove', {
+              line_id: parseInt(btn.dataset.lineRemove, 10),
+            });
+            state.visit = data.visit;
+            renderVisit();
+          } catch (e) {
+            alert(e.message);
+          }
+        };
+      });
+    } else {
+      content.classList.add('hidden');
+      if (state.lastCompletedVisit) {
+        empty.classList.add('hidden');
+        completed.classList.remove('hidden');
+        const v = state.lastCompletedVisit;
+        $('visit-completed-body').innerHTML = `
+          <p>Outcome: <strong>${v.outcome}</strong></p>
+          <p>Order: ${escapeHtml(v.sale_order_name || '—')} · ${v.order_amount || 0}</p>
+          <p>Notes: ${escapeHtml(v.notes || '')}</p>`;
+      } else {
+        empty.classList.remove('hidden');
+        completed.classList.add('hidden');
+      }
+    }
+  }
+
+  async function loadVisitHistory() {
+    const body = { limit: 50, offset: 0 };
+    const dateFrom = $('hist-date-from')?.value;
+    const dateTo = $('hist-date-to')?.value;
+    if (dateFrom) body.date_from = dateFrom;
+    if (dateTo) body.date_to = dateTo;
+    const data = await api('/api/shahtaj/v1/visits/mine', body);
+    const el = $('history-list');
+    const visits = data.visits || [];
+    if (!visits.length) {
+      el.innerHTML = '<p class="empty-state">No past visits.</p>';
+      return;
+    }
+    el.innerHTML = `<p class="meta">Showing ${visits.length} of ${data.total || visits.length}</p>` +
+      visits.map((v) => `
+        <article class="card history-card" data-visit-id="${v.id}">
+          <h4>${escapeHtml(v.shop?.name || '?')}</h4>
+          <p>${v.outcome} · ${v.started_at || ''}</p>
+          <p class="hint">Order: ${escapeHtml(v.sale_order_name || '—')}</p>
+        </article>`).join('');
+    el.querySelectorAll('.history-card').forEach((card) => {
+      card.onclick = async () => {
+        try {
+          await api('/api/shahtaj/v1/visits/get', {
+            visit_id: parseInt(card.dataset.visitId, 10),
+          });
+        } catch (e) {
+          alert(e.message);
+        }
+      };
+    });
+  }
+
+  async function loadSchedule() {
+    const data = await api('/api/shahtaj/v1/schedule/weekly', {});
+    const el = $('schedule-list');
+    const rows = data.schedules || [];
+    if (!rows.length) {
+      el.innerHTML = '<p class="empty-state">No weekly schedule.</p>';
+      return;
+    }
+    el.innerHTML = rows.map((s) => `
+      <article class="card">
+        <h4>${escapeHtml(s.day_label)} — ${escapeHtml(s.route?.name || '')}</h4>
+        <p>${s.shop_count} shops · progress ${s.week_tasks_progress?.toFixed?.(0) || 0}%</p>
+      </article>`).join('');
+  }
+
+  async function loadTargets() {
+    const data = await api('/api/shahtaj/v1/targets/mine', {});
+    const el = $('targets-list');
+    const rows = data.targets || [];
+    if (!rows.length) {
+      el.innerHTML = '<p class="empty-state">No active targets.</p>';
+      return;
+    }
+    el.innerHTML = rows.map((t) => `
+      <article class="card">
+        <h4>${escapeHtml(t.name)}</h4>
+        <p>${t.date_start} → ${t.date_end}</p>
+        <p>${t.achieved_value} / ${t.target_value} (${t.progress_percent?.toFixed?.(0) || 0}%)</p>
+      </article>`).join('');
+  }
+
+  async function loadMyShops() {
+    const data = await api('/api/shahtaj/v1/shops/mine', {});
+    const el = $('shops-list');
+    const shops = data.shops || [];
+    if (!shops.length) {
+      el.innerHTML = '<p class="empty-state">No registered shops yet.</p>';
+      return;
+    }
+    el.innerHTML = shops.map((s) => `
+      <article class="card shop-card" data-shop-id="${s.id}">
+        <h4>${escapeHtml(s.name)}</h4>
+        <p>${s.approval_state} · ${escapeHtml(s.owner_phone || '')}</p>
+      </article>`).join('');
+    el.querySelectorAll('.shop-card').forEach((card) => {
+      card.onclick = async () => {
+        try {
+          const detail = await api('/api/shahtaj/v1/shops/get', {
+            shop_id: parseInt(card.dataset.shopId, 10),
+            include_photos: true,
+          });
+          $('shop-detail-panel').classList.remove('hidden');
+          $('shop-detail-title').textContent = detail.shop.name;
+          $('shop-detail-photos').innerHTML = '<pre class="log-json">' +
+            escapeHtml(JSON.stringify(detail.shop.photo_data || {}, null, 2)) + '</pre>';
+        } catch (e) {
+          alert(e.message);
+        }
+      };
+    });
+  }
+
+  $('btn-refresh-visit').onclick = () => loadActiveVisit().catch(alertErr);
+  $('btn-refresh-history').onclick = () => loadVisitHistory().catch(alertErr);
+  $('btn-refresh-schedule').onclick = () => loadSchedule().catch(alertErr);
+  $('btn-refresh-targets').onclick = () => loadTargets().catch(alertErr);
+  $('btn-refresh-shops').onclick = () => loadMyShops().catch(alertErr);
+
+  $('btn-load-products').onclick = async () => {
+    if (!state.visit) {
+      alert('No active visit.');
+      return;
+    }
+    try {
+      const data = await api('/api/shahtaj/v1/products/list', {
+        visit_id: state.visit.id,
+        limit: 500,
+      });
+      state.products = data.products || [];
+      $('products-meta').textContent = `${state.products.length} of ${data.total} products loaded`;
+      renderProductCards();
+    } catch (e) {
+      alert(e.message);
+    }
+  };
+
+  function renderProductCards() {
+    const filter = ($('inp-product-filter').value || '').toLowerCase();
+    const qty = parseFloat($('inp-add-qty').value) || 1;
+    const el = $('product-cards');
+    const list = state.products.filter((p) =>
+      !filter || (p.name || '').toLowerCase().includes(filter)
+    );
+    el.innerHTML = list.map((p) => `
+      <article class="card product-card compact-card">
+        <h4>${escapeHtml(p.name)}</h4>
+        <p>${p.list_price} · ${escapeHtml(p.uom || '')}</p>
+        <p class="hint">${p.qty_unlimited ? 'Unlimited' : `Bookable: ${p.qty_bookable}`}</p>
+        <button class="secondary sm" data-product-id="${p.id}">Add</button>
+      </article>`).join('');
+    el.querySelectorAll('[data-product-id]').forEach((btn) => {
+      btn.onclick = async () => {
+        try {
+          const data = await api('/api/shahtaj/v1/visits/line/add', {
+            visit_id: state.visit.id,
+            product_id: parseInt(btn.dataset.productId, 10),
+            quantity: qty,
+          });
+          state.visit = data.visit;
+          renderVisit();
+        } catch (e) {
+          alert(e.message);
+        }
+      };
+    });
+  }
+
+  $('inp-product-filter').oninput = renderProductCards;
 
   $('btn-save-visit-notes').onclick = async () => {
     if (!state.visit) return;
@@ -870,6 +807,7 @@
         notes: $('inp-visit-notes').value,
       });
       state.visit = data.visit;
+      alert('Visit notes saved.');
     } catch (e) {
       alert(e.message);
     }
@@ -877,7 +815,7 @@
 
   $('btn-place-order').onclick = async () => {
     if (!state.visit) return;
-    if (!confirm('Place order and complete visit?')) return;
+    if (!confirm('Place order from cart lines?')) return;
     try {
       const data = await api('/api/shahtaj/v1/visits/place-order', {
         visit_id: state.visit.id,
@@ -894,10 +832,17 @@
 
   $('btn-end-visit').onclick = async () => {
     if (!state.visit) return;
+    const notes = ($('inp-visit-notes').value || '').trim();
+    if (!notes) {
+      alert('Please enter a reason in Visit notes before ending without order.');
+      $('inp-visit-notes').focus();
+      return;
+    }
     if (!confirm('End visit without order?')) return;
     try {
       const data = await api('/api/shahtaj/v1/visits/end-without-order', {
         visit_id: state.visit.id,
+        notes,
       });
       state.lastCompletedVisit = data.visit;
       state.visit = null;
@@ -917,63 +862,90 @@
     }
   };
 
-  $('btn-register-shop').onclick = async () => {
-    try {
-      const body = {
-        name: $('reg-name').value,
-        owner_name: $('reg-owner').value,
-        owner_phone: $('reg-phone').value,
-        latitude: parseFloat($('reg-lat').value),
-        longitude: parseFloat($('reg-lng').value),
-        credit_limit: parseFloat($('reg-credit').value) || 0,
-      };
-      const legacy = $('reg-legacy').value;
-      if (legacy) body.legacy_balance = parseFloat(legacy);
-      const zone = $('reg-zone').value;
-      const route = $('reg-route').value;
-      if (zone) body.zone_id = parseInt(zone, 10);
-      if (route) body.route_id = parseInt(route, 10);
+  async function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
 
-      const photos = {
-        owner_cnic_front: await readFileAsDataUrl('reg-cnic-front'),
-        owner_cnic_back: await readFileAsDataUrl('reg-cnic-back'),
-        owner_photo: await readFileAsDataUrl('reg-owner-photo'),
-        shop_exterior_photo: await readFileAsDataUrl('reg-shop-exterior'),
-      };
-      Object.entries(photos).forEach(([key, value]) => {
-        if (value) body[key] = value;
-      });
+  document.querySelectorAll('input[type=file][data-preview]').forEach((input) => {
+    input.addEventListener('change', async () => {
+      const preview = $(input.dataset.preview);
+      if (!input.files?.[0]) {
+        preview.classList.add('hidden');
+        return;
+      }
+      preview.src = await fileToBase64(input.files[0]);
+      preview.classList.remove('hidden');
+    });
+  });
+
+  $('btn-register-shop').onclick = async () => {
+    const body = {
+      name: $('reg-name').value.trim(),
+      owner_name: $('reg-owner').value.trim(),
+      owner_phone: $('reg-phone').value.trim(),
+      latitude: parseFloat($('reg-lat').value),
+      longitude: parseFloat($('reg-lng').value),
+    };
+    const credit = $('reg-credit').value;
+    const legacy = $('reg-legacy').value;
+    const zone = $('reg-zone').value;
+    const route = $('reg-route').value;
+    if (credit) body.credit_limit = parseFloat(credit);
+    if (legacy) body.legacy_balance = parseFloat(legacy);
+    if (zone) body.zone_id = parseInt(zone, 10);
+    if (route) body.route_id = parseInt(route, 10);
+    const photoFields = [
+      ['reg-cnic-front', 'owner_cnic_front'],
+      ['reg-cnic-back', 'owner_cnic_back'],
+      ['reg-owner-photo', 'owner_photo'],
+      ['reg-shop-exterior', 'shop_exterior_photo'],
+    ];
+    for (const [inputId, field] of photoFields) {
+      const file = $(inputId).files?.[0];
+      if (file) body[field] = await fileToBase64(file);
+    }
+    try {
       await api('/api/shahtaj/v1/shops/register', body);
-      await loadMyShops();
       alert('Shop submitted for approval.');
+      await loadMyShops();
     } catch (e) {
       alert(e.message);
     }
   };
 
-  function alertErr(e) { alert(e.message || e); }
+  $('btn-clear-log').onclick = () => {
+    $('api-log').innerHTML = '';
+  };
 
   /* ── Boot ── */
-  setupPhotoPreviews();
+  renderApiQuickIndex();
   renderEndpointReference();
-  (async function init() {
+
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const saved = JSON.parse(raw);
-        state.apiKey = saved.apiKey;
-        state.database = saved.database;
-        state.user = saved.user;
-        $('inp-database').value = state.database || 'shahtaj_dev19';
-        if (state.apiKey) {
-          await afterLogin();
-          return;
-        }
+      const parsed = JSON.parse(saved);
+      if (parsed.apiKey) {
+        state.apiKey = parsed.apiKey;
+        state.database = parsed.database;
+        state.user = parsed.user;
+        $('inp-database').value = parsed.database || 'shahtaj_dev19';
+        api('/api/shahtaj/v1/auth/me', {})
+          .then((me) => {
+            state.onlineStatus = me.online_status;
+            showApp();
+            loadTasks();
+            loadActiveVisit();
+          })
+          .catch(clearSession);
       }
     } catch (e) {
-      console.warn('Stored session invalid', e);
       clearSession();
     }
-    showLogin();
-  })();
+  }
 })();

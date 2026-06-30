@@ -42,6 +42,8 @@ class ShahtajApiTasks(http.Controller):
             float(latitude),
             float(longitude),
         )
+        if not hasattr(visit, 'id'):
+            raise UserError(_('Check-in failed. Finish your active visit first.'))
         return api_success({
             'visit': serializers.visit_dict(visit),
             'resumed': False,
